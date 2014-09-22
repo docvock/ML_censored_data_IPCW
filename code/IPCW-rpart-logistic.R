@@ -2,7 +2,7 @@
 #### Fit the HP dataset ####
 ############################
 
-code.base <- "C:/Users/Julian/Google Drive/iPredict/manuscripts/ML for censored data/code/"
+code.base <- "C:/Users/Julian/Google Drive/iPredict/manuscripts/ML-for-censored-data/code/"
 dat.base <- "H:/Carlson/Portal/Data/DataLock/DataLockv2.3.1/"
 source(paste0(code.base,"IPCW-fns.R"))
 
