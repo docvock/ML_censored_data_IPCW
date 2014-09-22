@@ -260,7 +260,19 @@ where $E_{M_1}^{*,\uparrow}, E_{M_1}^{*,\downarrow}, E_{M_2}^{*,\uparrow}, E_{M_
 %%
 \subsection{Logistic regression}
 
+Logistic regression is a simple and popular technique for modeling binary or Binomial data. The goal is a find a linear combination of features to approximate the log-odds, i.e.,
+\begin{equation}
+\log \left( \frac{ p_i(\mathbf{x}) }{ 1 - p_i(\mathbf{x}) } \right) = \beta_0 + \sum_{j=1}^p \beta_j x_j
+\end{equation}
+where $p_i(\mathbf{x}) = P(E_i=1 | \mathbf{X_i} = \mathbf{x})$ for the vector of features $\mathbf{X_i}$. The features may take any form, but in risk prediction the ``base'' model often includes the so-called main effects of each risk factor, i.e., the value of the risk factor itself. Given features $\mathbf{X}$ and a corresponding vector of event indicators $\mathbf{E}$, the logistic regression log-likelihood takes the form
+\begin{equation}
+\ell(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \left[ E_i \log p_i(\mathbf{x}) + (1-E_i) \log( 1 - p_i(\mathbf{x}) ) \right]
+\label{eq:logreglike}
+\end{equation}
+and can be maximized using a number of techniques, the most common of which is iteratively reweighted least squares [REF]. The solution of $\partial \ell / \partial \bbeta = \mathbf{0}$ is the unique maximum likelihood estimator of $\bbeta$. As shown in \citet{Friedman2000a}, $F(\mathbf{x}) = \log \left( \frac{ p(\mathbf{x}) }{ 1 - p(\mathbf{x}) } \right)$ minimizes $E(e^{-y F(\mathbf{x})})$ and hence it is possible to derive boosting procedures (e.g., LogitBoost) which build an additive predictive model by iteratively maximizing \eqref{eq:logreglike}. 
+
 \subsubsection{IPC-weighted logistic regression}
+
 
 [TUNING LOGISTIC REGRESSION]
 
