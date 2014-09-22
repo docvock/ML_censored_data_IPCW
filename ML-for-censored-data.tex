@@ -1,0 +1,607 @@
+%\documentclass[prodmode,acmtecs]{acmsmall} % Aptara syntax
+\documentclass[acmtkdd]{acmsmall} % Aptara syntax
+
+% Package to generate and customize Algorithm as per ACM style
+\usepackage[ruled]{algorithm2e}
+\renewcommand{\algorithmcfname}{ALGORITHM}
+\SetAlFnt{\small}
+\SetAlCapFnt{\small}
+\SetAlCapNameFnt{\small}
+\SetAlCapHSkip{0pt}
+\IncMargin{-\parindent}
+
+% Metadata Information
+\acmVolume{1}
+\acmNumber{1}
+\acmArticle{1}
+\acmYear{0000}
+\acmMonth{1}
+
+\usepackage{fullpage}
+\usepackage{natbib}
+%%% OMIT IMAGES - comment out to get them back %%%
+%\usepackage[demo]{graphicx}
+%\usepackage{graphicx}
+%
+%\usepackage{epsf,pstricks}
+%\usepackage{authblk}
+\usepackage{amsmath}
+%\usepackage{amsbsy}
+%\usepackage{amsfonts}
+%\usepackage{xcolor}
+%\usepackage{bbm}
+%\usepackage{multirow}
+%\usepackage{textcomp}
+%\usepackage{caption}
+%\usepackage{subcaption}
+%\captionsetup{compatibility=false}
+%\usepackage[%           % Fine in most cases
+%			pdfpagelabels,hypertexnames=true,
+%			plainpages=false,
+%			naturalnames=false]{hyperref}
+%\usepackage{color}
+%\definecolor{darkblue}{rgb}{0,0.1,0.5}
+%\hypersetup{colorlinks,
+%			linkcolor=blue,
+%			anchorcolor=blue,
+%			citecolor=blue}
+%%\def\pgfsysdriver{pgfsys-dvipdfm.def}
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+%\usepackage{algorithm}
+%%\usepackage{algorithmic}
+%\usepackage{algcompatible}
+%\usepackage{eqparbox}
+%\renewcommand{\algorithmiccomment}[1]{\hfill\eqparbox{COMMENT}{#1}}
+%\algrenewcommand\algorithmicindent{1.0em}
+\newcommand{\INDSTATE}[1]{\STATE\hspace{#1}}
+\newcommand*{\h}{\hspace{5pt}}% for indentation
+\newcommand*{\ha}{\hspace{1em}}% for indentation
+\newcommand*{\hh}{\h\h}% double indentation
+\newcommand{\argmin}{arg\,min}
+\newcommand\mycomment[1]{\textcolor{red}{\sffamily [#1]}}
+\newcommand\mbf[1]{\mathbf{#1}}
+\newcommand\mrm[1]{\mathrm{#1}}
+\newcommand\indicatorBig[1]{{\mathbb{I}}[#1]}
+\newcommand\indicator[1]{{\mathbb{I}}(#1)}
+%\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\uag}{\multirow{1}{*}{\textcolor{green}{\bf\Large\textuparrow}}}
+\newcommand{\daG}{\multirow{1}{*}{\textcolor{green}{\bf\Large\textdownarrow}}}
+\newcommand{\uar}{\multirow{1}{*}{\textcolor{red}{\bf\Large\textuparrow}}}
+\newcommand{\dar}{\multirow{1}{*}{\textcolor{red}{\bf\Large\textdownarrow}}}
+\newcommand{\mc}[1]{\multicolumn{2}{|c|}{#1}}
+\newcommand{\vrt}[1]{\rotatebox{90}{\mbox{#1}}}
+\newcommand{\footremember}[2]{%
+   \footnote{#2}
+    \newcounter{#1}
+    \setcounter{#1}{\value{footnote}}%
+}
+\newcommand{\footrecall}[1]{%
+    \footnotemark[\value{#1}]%
+}
+
+
+
+\begin{document}
+
+% Page heads
+\markboth{D. Vock et al.}{ML with censored time-to-event data}
+
+% Title portion
+\title{Adapting machine learning techniques to censored time-to-event data: a general approach using inverse proability of censoring weighting}
+\author{DAVID M. VOCK
+\affil{Division of Biostatistics, School of Public Health, University of Minnesota}
+JULIAN WOLFSON
+\affil{Division of Biostatistics, School of Public Health, University of Minnesota}
+SUNAYAN BANDYOPADHYAY
+\affil{Department of Computer Science, University of Minnesota}
+GEDIMINAS ADOMAVICIUS
+\affil{Department of Information and Decision Sciences, Carlson School of Management, University of Minnesota}
+PAUL E. JOHNSON
+\affil{Department of Information and Decision Sciences, Carlson School of Management, University of Minnesota}
+GABRIELA VAZQUEZ-BENITEZ
+\affil{HealthPartners Institute for Education and Research}
+PATRICK J. O'CONNOR
+\affil{HealthPartners Institute for Education and Research}}
+% NOTE! Affiliations placed here should be for the institution where the
+%       BULK of the research was done. If the author has gone to a new
+%       institution, before publication, the (above) affiliation should NOT be changed.
+%       The authors 'current' address may be given in the "Author's addresses:" block (below).
+%       So for example, Mr. Abdelzaher, the bulk of the research was done at UIUC, and he is
+%       currently affiliated with NASA.
+
+\begin{abstract}
+[REWRITE]
+\end{abstract}
+
+\category{G.3}{Probability and Statistics}{Survival analysis}
+
+\terms{Algorithms, Theory}
+
+\keywords{Machine learning, censored data, electronic health data, survival analysis, inverse probability of censoring weights, risk prediction, medical decision support.}
+
+\acmformat{David M. Vock, Julian Wolfson, Sunayan Bandyopadhyay, Gediminas Adomavicius, Paul E. Johnson, Gabriela Vazquez-Benitez, and Patrick J. O'Connor, 2010. Adapting machine learning techniques to censored time-to-event data: a general approach.}
+% At a minimum you need to supply the author names, year and a title.
+% IMPORTANT:
+% Full first names whenever they are known, surname last, followed by a period.
+% In the case of two authors, 'and' is placed between them.
+% In the case of three or more authors, the serial comma is used, that is, all author names
+% except the last one but including the penultimate author's name are followed by a comma,
+% and then 'and' is placed before the final author's name.
+% If only first and middle initials are known, then each initial
+% is followed by a period and they are separated by a space.
+% The remaining information (journal title, volume, article number, date, etc.) is 'auto-generated'.
+
+\begin{bottomstuff}
+This work was partially supported by NHLBI grant R01HL102144-01 and AHRQ grant R21HS017622-01.
+
+Author's addresses: TO FILL IN.
+\end{bottomstuff}
+
+\maketitle
+
+\section{Introduction}
+
+There is currently great interest in developing ``personalized'' risk prediction methods which can identify patients at high risk for experiencing various health outcomes (e.g., heart attack, stroke, diabetes, etc.). Recent systematic reviews have enumerated over 100 risk models produced between 1999 and 2009 for cardiovascular (CV) outcomes alone \citep{Cooney_2009,Cooney_2010,matheny2011systematic} including the well-known Framingham \citep{DAgostino_2008}, SCORE \citep{Conroy_2003}, ASSIGN-SCORE \citep{Woodward_2007}, QRISK1 \citep{HippisleyCox_2007,HippisleyCox_2008}, QRISK2 \citep{HippisleyCox_2008a}, PROCAM \citep{Assmann_2002}, WHO/ISH, and Reynolds Risk Score \citep{Ridker_2007,Ridker_2008}. Nearly all have been estimated using data from carefully selected epidemiological cohorts: for example, the Framingham risk score is trained on a data set that excludes patients that have had a previous CV event, represents a predominantly Caucasian population, and includes patients from the late 1960s \citep{DAgostino_2008}. As a result of estimating the risk of CV events using data from these homogeneous cohorts, existing risk models are likely to only give accurate predictions for patients who are well represented in the training data sets. 
+
+Most existing risk models have been developed using well-known regression-based methods for time-to-event data. The most commonly used statistical methods to model the relationship between risk factors and time-to-event outcomes are the Cox proportional hazards model \citep{Cox_1972} and, to a lesser extent, the accelerated failure time model \citep{Buckley_1979}. One appealing feature of these methods is that they yield simple summaries of the relative impact of various risk factors (age, gender, blood pressure, cholesterol, smoking status, etc.) on the likelihood of experiencing a CV event. But although these methods handle censored outcomes, the proportional hazards (accelerated failure time) model assumes that the risk factors have a linear relationship with the log hazard (log time) of experiencing a CV event. If the analyst has {\em{a priori}} knowledge that this relationship is non-linear or differs in certain sub-groups, he or she may include non-linear transformations of  predictors or interactions between predictors, but this is often based on trial and error.  As noted by \cite{Kattan_1998}, the proportional hazards model will show improved fit when additional terms are added in the model, and there is no reliable indication when the model has been overfit.
+
+Electronic health data collected by a health maintenance organization (HMO) consist of electronic medical records (EMRs), insurance claims data, and mortality data obtained from the state government. EHD are increasingly available within the context of large health care systems and capture the characteristics of a heterogeneous population receiving care in a contemporary clinical setting. EHD databases typically include records on hundreds of thousands to millions of individual patients; therefore, a risk prediction model constructed from EHD has the potential to yield more accurate and generalizable risk predictions than a model built using cohort data because even relatively specific sub-populations (e.g., patients with multiple comorbidities) are likely to be well-represented in such a large database. 
+
+The scale and complexity of EHD data provide an excellent opportunity to develop more accurate risk models using modern machine learning techniques \citep{Wu2010, song2004comparison,colombet2000models}. However, EHD provides a major challenge to building risk prediction models using ``off-the-shelf'' machine learning tools: in many datasets derived from EHD, a large fraction of subjects do not have enough follow-up data available to ascertain whether or not they experienced the event of interest over a given time period (e.g., a CV event over 5 years). In the language of statistical survival analysis, such subjects are said to be \emph{right-censored}. Fully supervised machine learning methods typically assume that the event indicator is known for all subjects, while in our setting the event indicator is undetermined for subjects who are censored, i.e., who do not experience an event and are not followed for the full time period over which one wants to make predictions (e.g., 5 years). Existing approaches to dealing with this issue, such as discarding censored observations (see, e.g., \cite{Larranaga_1997,Sierra_1998,Blanco_2005}) or treating them as zeroes (non-events), are known to induce bias in the estimation of class probabilities \citep{Kattan_1998}, making typical fully supervised classification approaches unsuitable. For example, \cite{Stajduhar_2009} demonstrated the impact of unaccounted-for censoring on the construction and performance of Bayesian networks. Semi-supervised approaches are also generally not applicable since the labeled (non-censored) and unlabeled (censored) observations are not samples from the same underlying population, and censored observations are not truly `unlabeled' since they carry useful partial information about the outcome.
+
+There has been increasing interest in adapting machine learning techniques to censored, time-to-event data.  \citet{ishwaran2008random} describe the random survival forests technique, and \citet{Lucas_2004} discuss the application of Bayesian networks to right-censored data. \citet{Zupan_2000} and \citet{Stajduhar_2010} have proposed approaches in which censored observations are repeated twice in the dataset, one as experiencing the event and one event-free. Each of these observations are assigned a weight based on the marginal probability of experiencing an event between the censoring time and $\tau$, the time the event status will be assessed. This approach, although intuitive, is provably biased and inconsistent because the method to weight each of the replicated observations is based on the marginal probability and does not properly account for the covariates. We discuss in Section~\ref{sect:IPCW} in greater detail the limitations of this approach. \citet{Stajduhar_2012} adopt a more principled likelihood-based approach to imputing event times, but their imputation technique may perform poorly if the assumed parametric distribution of event times is incorrect. Other approaches, including replacing the time-to-event with the martingale from the null model,  have been proposed to handle censored data in other machine learning methods including support vector regression, recursive partitioning, and multiple adaptive regression splines \citep{Therneau_1990,Kattan_1998,Kattan_2003}. These approaches require that the technique to mine the data permit a continuous outcome which restricts the class of techniques that can be applied.
+
+In this paper, we propose a general-purpose technique for mining right-censored time-to-event data using inverse probability of censoring weights (IPCW). The technique properly accounts for censoring and can be easily integrated into many existing class probability estimation procedures, allowing sophisticated (possibly ensemble-based) machine learning tools for censored data to be created with minimal programming effort. We begin by introducing the IPCW method and briefly reviewing its statistical properties. We then illustrate how IPCW can be applied to create ``censoring-aware'' versions of three popular prediction methods: logistic regression, Bayesian networks, and binary decision trees.  We also argue that traditional evaluation metrics for assessing model calibration and classification accuracy (e.g., AUC  and net reclassification improvement) may be misleading in the presence of censoring, and describe alternatives which are more appropriate for use in selecting model tuning parameters. We conclude by applying IPCW machine learning methods to predict the occurrence of cardiovascular events from electronic health data collected by a large Midwest health maintenance organization.
+
+\section{Inverse probability of censoring weighting}
+\label{sect:IPCW}
+
+\subsection{Notation}
+Let $E$ be the indicator that an event occurs prior to some fixed time $\tau$ (e.g., 5 years). Binary classification methods typically assume that $E$ is fully observed for all patients in the data set, but this is unlikely to be true when using information from real-world EHD. In our application, once a patient leaves the health system or the study ends, their health state (i.e., features of the risk prediction model) and event history are no longer recorded in the EMR. If the patient's follow-up ends prior to time $\tau$, then their event status at $\tau$ is unknown and their event indicator is said to be \emph{right-censored}. To establish notation which is standard in the statistical literature, for individual $i$ define $T_i$ as the time between the beginning of the follow-up period and the event of interest, and define $C_i$ as the time between the beginning of the follow-up period and when the patient is lost to follow-up (e.g., in our context, disenrolls from the health plan or reaches the end of the data capture period without experiencing an event). We observe $V_i=\min(T_i,C_i)$ and $\delta_i=\indicator{T_i<C_i}$, the indicator for whether or not an event was observed.  If $\delta_i = 0$, the subject's event time is right-censored. We can only ascertain whether an event truly occurred ($E_i = 1$) if $\delta_i=1$, or did not occur ($E_i = 0$) if $\delta_i=0$ and $V_i > \tau$; in other words, the value of $E_i$ is only known if $\min (T_i,\tau) < C_i$. We will denote the set of features available on individual $i$ by $\mathbf{X_i}$; it is assumed that these features are fully observed at the beginning of the follow-up period and hence are not subject to censoring and do not vary over time. 
+
+\subsection{The IPCW method}
+\label{sect:IPCWeights}
+
+As mentioned earlier, one naive approach to handling the subjects for whom we cannot ascertain the value of $E$ would be to exclude them from our training data set or to set $E=0$, but both approaches would lead to biased estimators of the risk $P(E=1)$ and hence potentially poor classification performance.  Instead, we propose to adjust for right-censoring using an inverse probability of censoring weighting (IPCW) approach. In the IPCW approach, only those patients for whom we can determine $E$ contribute to the analysis, but they are reweighted to accurately ``represent'' the patients who were censored prior to $\tau$ and were, therefore, omitted from the analysis. For example, patients that have a longer time to event are more likely to be censored and hence receive larger weights. Recalling that $\tau$ is the time period over which we wish to characterize events, the general-purpose IPCW method proceeds as follows:
+
+\begin{enumerate}
+\item Using the training data, estimate $G(\tau)=P(C_i>\tau)$, the probability that the censoring time is greater than $\tau$, using the Kaplan-Meier estimator of the survival distribution (i.e., 1 minus the cumulative distribution function) of the censoring times \citep{Kalbfleisch_2002}.  The Kaplan-Meier estimator of the censoring process is given by
+
+\begin{equation} \label{eq:KMdef}
+\hat{G}(\tau)=\prod_{i:t_{i}<\tau}\left( \frac{n_{i}-d^*_{i}}{n_{i}} \right )
+\end{equation}
+where $d^*_{i}$ is the number of subjects who were censored at time $t_{i}$ and $n_{i}$ is the number of subjects ``at risk'' for censoring (i.e., not previously censored or experiencing an event) at time $t_{i}$. Unlike other {\em{ad hoc}} approaches to handling censored observations, the Kaplan-Meier estimator is a consistent estimator of $G$ \citep{Kalbfleisch_2002}. We note that, for IPCW, Kaplan-Meier is applied to estimate the distribution of \emph{censoring times}, whereas it is much more commonly used to estimate the distribution of \emph{event times}. Standard software functions for computing the Kaplan-Meier estimator of events times can be used to estimate $G$ by setting the ``event'' indicators to $\delta^*_i = 1 - \delta_i$. 
+
+\item For each patient $i$ in the training set, define a weight
+\begin{equation} \label{eq:IPCWdef}
+\omega_i = \left\{ \begin{array}{cl}
+\frac{1}{ \hat{G}( \min(V_i, \tau) ) } & \text{if } \min (T_i,\tau) <C_j	 \\
+0 &  \text{otherwise}
+	\end{array} \right.
+\end{equation}
+
+\item Apply an existing prediction method to a weighted version of the training set, where each member $i$ of the training set is assigned weight $\omega_i$.
+\end{enumerate}
+
+Step 3 is left purposefully vague, as the incorporation of training set weights will vary according to the prediction technique used. In the next section, we illustrate how inverse probability weighted instances can be used to train three popular risk prediction methods.
+
+\subsection{Statistical validity of IPCW}
+
+[ NEED TO MAKE THIS MORE GENERAL ]
+
+The IPCW approach to handling censored event times assumes that the censoring time $C$ is independent of the event time $T$ and all features $\mbf{X}$. In our study, most patients are censored due to the end of the study or because they disenroll from the HMO due to a change in employment, reasons unrelated to their health status (i.e., $\mbf{X}$ and $T$). 
+
+We briefly argue why inverse probability of censoring weighting results in consistent estimators (unbiased in large samples and converging in probability to the true parameter) for the parameters in the Bayesian network .
+
+If we fully observed the event status $E$ on all subjects and wished to estimate $\mu_{i,z_i,e}$, a reasonable estimator would be the sample average of $Y_i$ among all subjects in the training set with  $\mbf{Z}_i=\mbf{z}_i$ and  $E=e$:
+\begin{equation} \label{eq:example}
+{\hat {\mu}}_{i,z_i,e}  =  \frac{ \sum_{j=1}^n Y_{ij} \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e} } { \sum_{j=1}^n \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e} }  =  \frac{ \frac{1}{n} \sum_{j=1}^n Y_{ij} \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e} } { \frac{1}{n} \sum_{j=1}^n \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e} } \\
+\end{equation}
+Since $E(Y_{ij} \indicatorBig{\mbf{Z_{ij}} = \mbf{z_i},E_j=e}) = \mu_{i,z_i,e}P_{\mbf{Z_i},E}(\mbf{z_i},e)$ and $E(\indicatorBig{\mbf{Z_{ij}} = \mbf{z_i}, E_j=e}) = P_{\mbf{Z_i},E}(\mbf{z_i},e)$, by the weak law of large numbers $\hat \mu_{i,z_i,e}$ converges in probability to $\mu_{i,z_i,e}$.
+
+When $E$ is not be observed on all subjects, an IPCW estimator is given by
+\begin{equation} \label{eq:example_IPCW}
+{\hat {\mu}}^{IPCW}_{i,z_i,e}  =  \frac{ \sum_{j=1}^n Y_{ij} \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e} \omega_j } { \sum_{j=1}^n \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e}  \omega_j} = \frac{ \frac{1}{n} \sum_{j=1}^n Y_{ij} \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e}  \omega_j} { \frac{1}{n} \sum_{j=1}^n \indicatorBig{\mbf{Z}_ij=\mbf{z}_i,E_j=e}  \omega_j}
+\end{equation}
+
+Note that we can rewrite $\omega_j$ as $\indicatorBig{\min(T_j,\tau)<C_j}/ \hat{G}\{\min(T_j,\tau)\}$ which approaches $\indicatorBig{\min(T_j,\tau)<C_j}/ G\{\min(T_j,\tau)\}$ for large samples. Combining this fact with the assumption that $C$ is independent of $T$ and $X$, it can be shown that the numerator and denominator in Equation~\eqref{eq:example_IPCW} converge in probability to the same quantity as in the non-IPCW case, so that $\hat \mu^{IPCW}_{i,z_i,e}$ converges in proability to $\mu_{i,z_i,e}$. The reader is encouraged to consult the cited references above especially \citet{Bang_2000} for a rigorous theoretical treatment. The IPCW parameter estimators and parameter updates in the EM algorithm, Equations~\eqref{eq:PofE_IPCW}, \eqref{eq:PofZ_IPCW}, and \eqref{eq:EMupdate_IPCW}, take the form of weighted sample averages.  Therefore, the results of the illustrative example considered here are generalizable to all IPCW estimators.
+
+%%%
+\section{Risk prediction evaluation metrics for censored data} \label{sce:performanceMetrics}
+
+A key feature of many machine learning techniques for risk prediction is that they can be ``tuned'' by adjusting parameters to optimize a performance metric, e.g., the misclassification rate. For the same reasons described above that failing to account for censoring yields biased parameter estimates, the usual performance metrics applied to risk prediction problems can be misleading when outcomes are subject to censoring. In this section, we present modifications of standard calibration (goodness-of-fit test statistic) and discrimination (concordance index and net reclassification improvement) metrics which properly account for censored data and allow model performance to be assessed more accurately. In the Section \ref{sect:examples}, we describe how these modified metrics can be used to select tuning parameter values for IPC-weighted versions of canonical machine learning techniques.
+%For the statistics described in this section, closed-form expressions for the asymptotic variance are usually not available, and hence standard errors for the calculation of confidence intervals and p-values are obtained by bootstrap resampling.
+
+\subsection{Calibration}\label{sec:calibration}
+
+For standard class probability estimation problems, calibration is commonly assessed by ranking the predicted class probabilities for the test set, binning the ranked predictions (e.g., by decile), and comparing the mean (or median) predicted class probability in each bin to the empirical class probability of the instances in that bin. An alternative adapted to a censored data setting estimates the probability of experiencing an event prior to time $\tau$ within each bin using the Kaplan-Meier estimator. A calibration statistic can be formed:
+\begin{equation}
+K = \sum_{j=1}^B \frac{ ( \bar p_j - p^{KM}_j )^2 }{ var(p_{j}^{KM})}
+\end{equation}
+\begin{equation}\label{greenwood_formula}
+var(p_{j}^{KM}) = var\{S_j(\tau)\} = S_j(\tau)^2\sum_{t_i<\tau}\frac{d_{ij}}{n_{ij} - d_{ij}}
+\end{equation}
+where $B$ is the number of bins, $\bar p_j$ is the average of predicted probabilities in bin $j$, $p^{KM}_j$ is the Kaplan-Meier estimate of experiencing an event before $\tau$, $S_{j}(\tau)$ is its corresponding survival rate ($= 1-p_j^{KM}$), $var\{p_{j}^{KM}\}$ is its variance calculated using Greenwood's formula \citep{greenwood1926report} applied to the data in bin $j$, $d_{ij}$ is the number of events occurring at time $t_i$ in bin $j$, and $n_{ij}$ are the number of people ``at risk'' for an event at time $t_i$ (i.e., not censored and not experiencing an event before time $t_i$). $K$ is analogous to the $\chi^2$ statistic for assessing the calibration of logistic models suggested by \cite{Hosmer_1980,Lemeshow_1982}. Calibration plots can be used compare predicted and Kaplan-Meier probabilities of experiencing an event before $\tau$ within bins defined by ranges of predicted probabilities. 
+
+\subsection{Concordance index}\label{sec:cIndex}
+
+The area under the ROC curve (AUC) is a widely used summary measure of predictive model performance. It is equivalent to the concordance index (C-index), the probability of correctly ordering the outcomes for a randomly chosen pair of subjects whose predicted risks are different. Standard techniques for estimating the AUC/C-index are potentially biased when data are censored. However, as described in \citet{Harrell}, The C-index can be adapted for censoring by considering the concordance of survival outcomes versus predicted survival probability among pairs of subjects whose survival outcomes can be ordered, i.e., among pairs where both subjects are observed to experience a CV event, or one subject is observed to experience a CV event before the other subject is censored. Pairs in which both subjects are censored or in which the censoring time of one precedes the failure of the other do not contribute to this metric. Let $\hat{P}_{E_j|\mbf{X}_j}(e_j=1|\mbf{x}_j)$ be the estimated probability that the $j^{th}$ subject experiences an event within $\tau$ years. Then the C-index adapted for censoring is given by
+\begin{equation}
+C_{cens}(\tau) = \frac{ \sum_{k \neq j}  \delta_k \indicatorBig{V_k<V_j}\indicatorBig{ \hat{P}_{E_k|\mbf{X}_k}(e_k=1|\mbf{x}_k) <\hat{P}_{E_j|\mbf{X}_j}(e_j=1|\mbf{x}_j) }}{ \sum_{k \neq j} \delta_k \indicatorBig{V_k<V_j} }
+\end{equation}
+
+Note that the only pairs which contribute to $C_{cens}(\tau)$ are those where one subject experiences an event prior to $\tau$ and the other is known not to have experienced an event before the first subject.
+
+\subsection{Net Reclassification Improvement}\label{sec:NRI}
+
+The C-index may be inadequate to distinguish between models that differ in relatively modest but clinically important ways. One proposed alternative is the Net Reclassification Improvement (NRI) \citep{pencina2008evaluating}. The NRI compares the number of ``wins'' for two models among discordant predictions. It has been argued that NRI is a particularly relevant measure of comparison between models in the clinical domain, where it is often more important to discriminate between lower and higher risk patients than to estimate their risk precisely. The NRI is computed by cross-tabulating predictions from two different models with table cells defined by clinically meaningful cardiovascular risk categories or bins, then comparing the agreement of discordant predictions with actual event status. Formally, the NRI for comparing prediction models $M_1$ and $M_2$ using fully observed (i.e., not censored) binary event data is given by:
+\begin{equation}\label{eq:NRI}
+\mathrm{NRI}(M_1,M_2) = \frac{E_{M_1}^{\uparrow} - E_{M_2}^{\uparrow}}{n_E} + \frac{ \bar{E}_{M_1}^{\downarrow} - \bar{E}_{M_2}^{\downarrow}}{ n_{\bar{E}}}
+\end{equation}
+
+Here $E_{M_1}^{\uparrow}$ is the number of individuals who experienced events and were placed in a higher risk category by $M_1$ than $M_2$ (i.e., a number of ``wins'' for $M_1$ over $M_2$ among patients who had events), and the opposite change in risk categorization yields $E_{M_2}^{\uparrow}$). Similarly, $\bar{E}_{M_1}^{\downarrow}$ and $\bar{E}_{M_2}^{\downarrow}$ count the number of individuals who did not experience an event and were ``down-classified'' by $M_1$ and $M_2$, respectively (i.e., ``wins'' among patients who did not have events). $n_E$ and $n_{\bar E}$ are the total number of patients with events and non-events, respectively.  A positive $\mathrm{NRI}(M_1,M_2)$ means better reclassification performance for $M_1$, while a negative $\mathrm{NRI}(M_1,M_2)$ favors $M_2$. 
+
+Omitting subjects with less than five years of follow-up (or treating them as non-events) will result in biased estimates of the NRI.  To evaluate risk reclassification on our test data which are subject to censoring, a ``censoring-adjusted'' NRI (cNRI) due to \cite{Pencina_2011} takes the form:
+
+\begin{equation}
+\mathrm{cNRI}(M_1,M_2) = \frac{E_{M_1}^{*,\uparrow} - E_{M_2}^{*,\uparrow}}{n^*_E} + \frac{ \bar{E}_{M_1}^{*,\downarrow} - \bar{E}_{M_2}^{*,\downarrow}}{ n^*_{\bar{E}}}
+\label{eq:cNRI}
+\end{equation}
+
+where $E_{M_1}^{*,\uparrow}, E_{M_1}^{*,\downarrow}, E_{M_2}^{*,\uparrow}, E_{M_2}^{*,\downarrow}, n^*_E$ and $n^*_{\bar E}$ are analogous to the quantities in \eqref{eq:NRI}, but correspond to expected number of subjects in each category, with the expectations computed using the Kaplan-Meier estimator to account for censoring. 
+
+
+%%%
+\section{Applying IPCW with existing machine learning techniques: 3 examples}
+\label{sect:examples}
+
+%%
+\subsection{Logistic regression}
+
+\subsubsection{IPC-weighted logistic regression}
+
+[TUNING LOGISTIC REGRESSION]
+
+%%
+\subsection{Bayesian networks}
+Bayesian networks arewell-suited to handle the intricacies of risk prediction from complex health data. Compared to support vector machines or neural networks, Bayesian networks have a clear edge in interpretability, which is important to the end-users of these prediction models in the healthcare domain (e.g., physicians and clinical researchers). Because of their interpretability and their ability to aid in reasoning with uncertainty, Bayesian networks have been used extensively in biomedical applications (see \cite{Lucas_2004} for a review). In particular, they have been: used to aid in understanding of disease prognosis and clinical prediction \citep{Andreassen_1999,Verduijn_2007,Lipsky_2005,Sarkar_2013,Frances_2013,Lappenschaar_2013}; used to guide the selection of the appropriate treatment \citep{Lucas_2000,Kazmierska_2008,Smith_2009,Yet_2013,Velika_2014}; and implemented as part of clinical decision support systems \citep{Lucas_1998,Sesen_2013}.
+
+%Let the features recorded on a patient be represented by a $p$-dimensional vector $\mathbf{X} = (X_1 \cdots X_p)$ where $X_i$ is the $i^\mathrm{th}$ risk factor (some of the factors could be missing for certain patients). Let $E=1$ indicate that an event (e.g., a CV event) occurred for a given patient within $\tau$ years of the beginning of the follow-up period, and $E=0$ indicate the absence of such an event in that time frame. Though our ultimate goal is to handle the case where $E$ is unknown for some patients, for now we assume that at least $\tau$ years of follow-up is available on each patient so that $E$ is fully observed.
+
+Let $E=1$ indicate that an event (e.g., a CV event) occurred for a given patient within $\tau$ years of the beginning of the follow-up period, and $E=0$ indicate the absence of such an event in that time frame. The target of estimation is $P_{E|\mathbf{X}}(e|\mathbf{x})$, the conditional probability that $E=e$ given the features $\mathbf{x}$ of a particular patient. Using Bayes theorem, one can rewrite this conditional probability of an event as
+
+\begin{equation} \label{eq:bayesBasic}
+P_{E|\mathbf{X}}(e=1|\mathbf{x}) = \frac{P_{\mathbf{X}|E}(\mathbf{x}|e=1)P_E(e=1)}{\sum_{e\in\{0,1\}} P_{\mathbf{X}|E}(\mathbf{x}|e)P_E(e)},
+\end{equation}
+%so that the focus is shifted to estimation of the conditional density/probability $P_{\mathbf{X}|E}(\mathbf{x}|e)$ and the probability $P_E(e)$ for $e = 0,1$. To maintain notational brevity, we use $P_Y(y)$ to denote either the probability that the random variable $Y$ equals $y$ if $Y$ is discrete or the probability density of $Y$ evaluated at $y$ if $Y$ is a continuous random variable. Similarly, $P_{Y|Z}(y|z)$ is the conditional probability/density of the random variable $Y$ evaluated at $y$ given $Z=z$. In general, the dimensionality of the feature space $p$ may be too large to make joint modeling of $P_{\mathbf{X}|E}(\mathbf{x} | e=1)$ feasible.  
+To simplify the task of modeling $P_{\mathbf{X}|E}$, one can represent the joint distributions of $\mathbf{X}|E=e$ using a directed acyclic graph (DAG), i.e., a Bayesian network. The DAG encodes conditional independence relationships between variables, allowing the joint distribution to be decomposed into a product of individual terms conditioned on their parent variables \citep{stuart2003artificial}:
+
+\begin{equation} \label{eq:DAGfactorsCond}
+P_{\mbf{X}|E}(\mbf{x}|e) = \prod_{i=1}^p P_{X_i|\mrm{Pa}(X_i),E}\{x_i|\mrm{Pa}(x_i),e\}
+\end{equation}
+where $\mrm{Pa}(X_i)$ are the parents of $X_i$.
+
+One advantage of the Bayesian network approach is that clinical knowledge can be used to suggest and refine DAG structures. While methods exist to infer the DAG structure from data, in our application we used parsimonious DAGs based on information from the medical literature as well as clinical judgment from the medical experts who collaborated on this research project. 
+%The DAG structure used in our predictive models is shown in Figure \ref{figure:BayesNet} (see the caption of the figure for a brief description) and is explained in greater detail in Section \ref{sec:data}. The graphical model in Figure \ref{figure:BayesNet} contains both continuous-valued nodes (which are elliptical in the figure) and discrete-valued nodes (which are rectangular). The network is therefore a \emph{hybrid Bayesian network}~\citep{murphy1998inference}.
+
+%
+\subsubsection{IPC-weighted Baysian networks}
+
+When $E$ is observed on all subjects (i.e., there is no censoring), the maximum likelihood estimate of $P_E(e)$ is straightforward:
+\begin{equation}\label{eq:PofE}
+{\hat{P}}_E(e) = \frac{1}{n} \sum_{j=1}^n \indicatorBig{E_j=e},
+\end{equation}
+where $E_j$ is the CV event status for the $j^{th}$ person, $n$ is the number of people in the training set, and $\indicatorBig{\cdot}$ is the indicator function.
+
+Several approaches have been proposed to modeling the terms $P_{X_i|\mrm{Pa}(X_i),E}\{x_i|\mrm{Pa}(x_i),e\}$. For example, a common strategy is to construct a regression model to link the values of continuous parent nodes of $X_i$ to the mean of $X_i$.  In applying Bayesian networks to our example data in Section \ref{sec:data}, we take a slightly different approach which is fully detailed in \citet{Bandyopadhyay2014}: We partition each group $\mbf{G}_i = \{X_i,\mathrm{Pa}(X_i)\}$ into $(\mathbf{Y}_i, \mathbf{Z}_i)$, where $\mbf{Y}_i$ represents the continuous risk factors and $\mbf{Z}_i$ the discrete risk factors. The joint distribution of $\mbf{G}_i$ given $E$ is $P_{\mbf{G}_i|E}(\mbf{g}_i|e)=P_{\mbf{Y}_i|\mbf{Z}_i,E}(\mbf{y}_i|\mbf{z}_i,e)\times P_{\mbf{Z}_i|E}(\mbf{z}_i|e)$, where $P_{\mbf{Z}_i|E}(\mbf{z}_i|e)$ is a discrete probability distribution. This distribution can be estimated by computing the proportion of observations in each unique state of $\mbf{Z}_i$ separately for $E=0$ or $E=1$, i.e.,
+\begin{equation} \label{PofZ}
+{\hat{P}}_{\mbf{Z}_i|E}(\mbf{z}_i|e) = \frac{{\hat{P}}_{\mbf{Z}_i,E}(\mbf{z}_i,e)}{ {\hat{P}}_E(e) } =
+\frac{\frac{1}{n}\sum_{j=1}^n \indicatorBig {\mbf{Z}_{ij}=\mbf{z}_i, E_j=e}}{\frac{1}{n} \sum_{j=1}^n \indicatorBig { E_j=e}},
+\end{equation}
+where again $j$ indexes the subject. For the continuous components,  we model the density of $\mbf{Y}_i$ given $\mbf{Z}_i$ and $E$ as a mixture of $M$ multivariate normal densities  conditional on the levels of $\mathbf{Z}_i$:
+\begin{equation}\label{eq:JoinDistComps2}
+P_{\mbf{Y}_i|\mbf{Z}_i,E}(\mbf{y}_i|\mbf{z}_i,e)=\sum_{m=1}^M \rho_{i,m,z_i,e} \phi_{C_{\mbf{Y_i}}} \left\{ \Sigma^{-1/2}_{i,m,z_i,e} ( y_i - \mu_{i,m,z_i,e}) \right \},
+\end{equation}
+where $\phi_k(\cdot)$ is the density function of a $k$-variate standard normal random variable, $\mu_{i,m,z_i,e}$ and $\Sigma_{i,m,z_i,e}$ are the mean and variance matrix of $\mbf{Y}_i$ given $\mbf{Z}_i=\mbf{z}_i$ and $E=e$ for the $m^{th}$ multivariate normal density in the mixture, and $\rho_{i,m,z_i,e}$ are the mixing parameters where $\sum_{m=1}^M \rho_{i,m,z_i,e} = 1$. 
+
+For a fixed number of mixing components $M$ and given $E=e$ and $\mbf{Z}_i=\mbf{z}_i$, a standard expectation maximization (EM) algorithm \citep{dempster1977maximum} is used to solve for the maximum likelihood estimators of the mean, variance, and mixing parameters. In this well-studied Gaussian mixture problem, it is possible to derive explicit update formulas for both mixing and distributional parameters so that the ``E-step'' and ``M-step'' are performed simultaneously. In particular,
+\begin{eqnarray} \label{eq:EMupdate}
+\mu_{i,m,z_i,e}^{(\nu+1)} &=& \frac{ \sum_{j=1}^n p_{j,m}^{(\nu)} Y_{ij} } {\sum_{j=1}^n p_j^{(\nu)} } \\ \nonumber
+\Sigma_{i,m,z_i,e}^{(\nu+1)} &=&\frac{ \sum_{j=1}^n p_{j,m}^{(\nu)} (Y_{ij}- \mu_{i,m,z_i,e}^{(\nu+1)})^T (Y_{ij}- \mu_{i,m,z_i,e}^{(\nu+1)})  } {\sum_{j=1}^n p_j^{(\nu)} } \\ \nonumber
+\rho_{i,m,z_i,e}  &=& \frac{\sum_{j=1}^n p_{j,m}^{(\nu)} } {\sum_{j=1}^n \indicatorBig{\mbf{Z}_{ij}=z_i, E_j=e} },
+\end{eqnarray}
+where $p_j^{(\nu)} = \mathrm{E}_{\theta^{(\nu)}} (I_{i,m,z_i,e} |\mbf{Y}_{ij},E_j, \mbf{Z}_{ij}) \times \indicatorBig{\mbf{Z}_{ij}=z_i, E_j=e}$.  Additional details of the algorithm can be found in \citet{Bilmes_1998}. The choice of $M$ is discussed below.
+
+To fit the Bayesian network using IPCW, we make the following modifications:
+\begin{enumerate}
+\item Estimate IPC weights $\omega_j$ as described in Section \ref{sect:IPCWeights}.
+\item Obtain an IPCW estimator of $P_E(e)$ via
+\begin{equation}
+{\hat{P}}_E(e) = \frac{1}{n} \sum_{j=1}^n\indicatorBig{E_j=e} \omega_j  \label{eq:PofE_IPCW} \\ 
+\end{equation}
+\item Obtain an IPCW estimator of the discrete variables $\mbf{Z_i}$ via
+\begin{equation}
+{\hat{P}}_{\mbf{Z}_i|E}(\mbf{z}_i|e) = \frac{\frac{1}{n}\sum_{j=1}^n \indicatorBig{\mbf{Z}_{ij}=\mbf{z}_i, E_j=e} \omega_j } {\frac{1}{n}\sum_{j=1}^n \indicatorBig{E_j=e}\omega_j} \label{eq:PofZ_IPCW},
+\end{equation}
+\item Obtain an IPCW estimator of the continuous variables $\mbf{Y_i}$ using a weighted EM algorithm where the contribution of maximum likelihood where the contribution of the $j^{th}$ subject to the likelihood is weighted by $\omega_j$. The update formulas for the parameter estimates previously given in Equation~\eqref{eq:EMupdate} become
+\begin{eqnarray} \label{eq:EMupdate_IPCW}
+\mu_{i,m,z_i,e}^{(\nu+1)} &=& \frac{ \sum_{j=1}^n \omega_j  p_{j,m}^{(\nu)} Y_{ij} } {\sum_{j=1}^n p_j^{(\nu)}\omega_j } \\ \nonumber
+\Sigma_{i,m,z_i,e}^{(\nu+1)} &=&\frac{ \sum_{j=1}^n \omega_j  p_{j,m}^{(\nu)} (Y_{ij}- \mu_{i,m,z_i,e}^{(\nu+1)})^T (Y_{ij}- \mu_{i,m,z_i,e}^{(\nu+1)})  } {\sum_{j=1}^n p_j^{(\nu)}\omega_j } \\ \nonumber
+\rho_{i,m,z_i,e}  &=& \frac{ \sum_{j=1}^n \omega_j  p_{j,m}^{(\nu)}} {\sum_{j=1}^n \indicatorBig{\mbf{Z}_{ij}=\mbf{z}_i,E_j=e} \omega_j},
+\end{eqnarray}
+where $p_j^{(\nu)} = E_{\theta^{(\nu)}} (I_{i,m,z_i,e} |\mbf{Y}_{ij},E_j, \mbf{Z}_{ij}) \times \indicatorBig{\mbf{Z}_{ij}=z_i, E_j=e}$ as before.
+\end{enumerate}
+
+Note that for subjects with $E=0$ (and $V > \tau$) the weights for all individuals are $1/\hat{G}(\tau)$ so the maximum likelihood estimators for $P_{\mbf{G}_i|E}(\mbf{g}_i|e=0)$ are the same as in the unweighted analysis. Further details of the weighted EM algorithm are provided in \citet{fraley2012mclust}. Many software packages implementing the EM algorithm (e.g., Matlab, R) allow weights to be provided as arguments to the EM function, making the IPCW Bayesian network approach straightforward to implement.  
+
+Tuning a Bayesian network for optimal performance may involve determining the network structure and/or controlling model complexity for a given structure. In the Bayesian Network implementation we present below, we consider only a single network structure which is informed by discussions with our clinical colleagues, however a set of feasible structures could easily be compared on a test set or via cross-validation using the calibration and reclassfication metrics described in Section \ref{sec:performanceMetrics}. Algorithms for learning graph structure (e.g., \citet{deCampos2011}) often use scoring criteria such as the BIC which we, as we show below, are easily adapted to the censored data setting.
+
+In the above presentation of the Bayesian Network, a parameter $M$ controls the number of mixture components used to estimate the conditional distibutions of continuous features.  One could consider $M$ to be a tunable parameter, and either select a single value or, as suggested in \citet{Bandyopadhyay2014}, use a model averaging procedure to combine results across multiple values of $M$.  \citet{Bandyopadhyay2014} determines the relative weights of each model using the Bayes Information Criteria (BIC). In settings without censoring, $BIC = -2 \log(L) + k \log(n)$ where $l$ is the likelihood evaluated at the maximum likelihood parameter estimates, $n$ is the number of subjects in the training set, and $k$ the number of (free) parameters in the model. Since IPC weights are incorporated directly into the likelihood, it is straightforward to construct an IPC-weighted BIC appropriate for censored-data settings via $BIC^\omega = -2 \log(L^\omega) + k \log(\sum_i \omega_i)$, where$L^\omega$ is the IPC-weighted likelihood given in Equation (15) of \citet{Bandyopadhyay2014}. 
+
+%%
+\subsection{Decision trees}
+
+[ LITERATURE REVIEW ON DECISION TREES ]
+
+\subsubsection{IPC-weighted decision trees}
+
+It is straightforward to extend decision trees to incorporate IPC weighting: individual cases in the training set are assigned weights $\omega_i$ as described above, and the $\omega_i$ are used as ``case weights'' in the decision tree algorithm. For example, CART \citep{Breiman1984} uses the decrease in Gini impurity to determine splits:
+\[
+\Delta I_G(S) = \hat p(S) ( 1- \hat p(S)) - \frac{1}{N_S} \left[ N_{S_L} \hat p(S_L) (1 - \hat p(S_L)) + N_{S_R} \hat p(S_R)( 1- \hat p(S_R)) \right] 
+\]
+where $\hat p(S), \hat p(S_L),$ and $\hat p(S_R)$ are respectively the sample proportion of outcomes in a node $S$, and the left-hand and right-hand children for a given splitting rule, $N_{S_L}$, and $N_{S_R}$ are the number of instances in each child, and $N_S = N_{S_L} + N_{S_R}$. In the unweighted case, the sample proportions are computed in the usual way, i.e.:
+\[
+\hat p(S) = \frac{1}{N_S} \sum_{i \in S} Y_i , \ \ \   \hat p(S_L) = \frac{1}{N_{S_L}} \sum_{i \in S_L} Y_i , \ \ \ \hat p(S_R) = \frac{1}{N_{S_R}} \sum_{i \in S_R} Y_i
+\]
+where $Y_i$ is the binary event indicator. With IPC weighting, we simply calculate a weighted decrease in Gini impurity,
+\[
+\Delta I^\omega_G(S) = \hat p^\omega(S) ( 1- \hat p^\omega(S)) - \frac{1}{N^\omega_S} \left[ N^\omega_{S_L} \hat p^\omega(S_L) (1 - \hat p^\omega(S_L)) + N^\omega_{S_R} \hat p^\omega(S_R)( 1- \hat p^\omega(S_R)) \right] 
+\]
+where
+\[
+N^\omega_S = \sum_{i \in S} \omega_i,
+\ \ \ N^\omega_{S_L} = \sum_{i \in S_L} \omega_i,
+\ \ \ N^\omega_{S_R} = \sum_{i \in S_R} \omega_i,
+\]
+and
+\[
+\hat p^\omega(S) = \frac{ \sum_{i \in S} \omega_i Y_i }{ N^\omega_S },
+\ \ \ \hat p^\omega(S_L) = \frac{ \sum_{i \in S_L} \omega_i Y_i }{ N^\omega_{S_L} },
+\ \ \ \hat p^\omega(S_R) = \frac{ \sum_{i \in S_R} \omega_i Y_i }{ N^\omega_{S_R} },
+\]
+
+The identical approach can be applied to estimate a weighted version of the information gain metric which forms the basis of the C4.5 and C5.0 decision tree algorithms:
+\[
+\Delta I^\omega_E(S) =  \hat I^\omega_E(S) - \frac{1}{N^\omega_S} [ N^\omega_{S_L} \hat I_E^\omega(S_L) + N^\omega_{S_R} \hat I_E^\omega(S_R) ]
+\]
+where
+\[
+\hat I^\omega_E(\cdot) = - \hat p^\omega(\cdot) \log \hat p^\omega(\cdot) - (1 - \hat p^\omega(\cdot)) \log(1 - \hat p^\omega(\cdot))
+\]
+
+Because of their flexibility, regression trees often overfit training data. Many overfitting avoidance techniques have been proposed, with most involving a tuning parameter which restricts the complexity of the tree. One strategy consists of setting a lower limit $m$ on the number of individuals assigned to a terminal node; in our notation above, the node $S$ would not be split according to a given rule unless $\min(N_{S_L}, N_{S_R}) \geq m$. This strategy is easily generalized to the case with censoring by requiring that $\min(N^\omega_{S_L}, N^\omega_{S_R}) \geq m$. Another approach requires that the information gain exceed a certain threshold $\theta$, e.g., $\Delta I_E(S) \geq \theta$. Substituting $\Delta I^\omega_E(S)$ for $\Delta I_E(S)$ (and similarly $\Delta I^\omega_G(S)$ for $\Delta I_G(S)$) allows the same rule to be used in the censored data setting. Final tuning parameter values may be chosen by cross-validation, where the cross-validated criterion to optimize could involve a measure of calibration, reclassification (C-index/NRI), or a combination of both.
+
+%%%
+\section{Example Application: Predicting cardiovascular risk using electronic health data}\label{sec:data}
+
+We now illustrate the application of IPC-weighted risk prediction methods to the problem of predicting the risk of a cardiovascular event from electronic health data. The data come from a healthcare system in the Midwestern United States, and were extracted from the HMO Research Network Virtual Data Warehouse (HMORN VDW) associated with that system. The VDW stores data in standardized data structures including insurance enrollment, demographics, pharmaceutical dispensing, utilization, vital signs, laboratory, census and death records. This health care system includes both an insurance plan and a medical care network in an open system which is partially overlapping. That is, patients of the insurance plan may be served by either the internal medical care network and or by external healthcare providers, and the medical care network serves patients within and outside of the insurance plan.  Patient-members who do not visit any of the clinics and hospitals in-network do not have any medical information (e.g., blood pressure information) included in the electronic medical record (EMR) of this system. Furthermore, once the patient-member disenrolls from the HMO, the patient no longer has any information recorded in the EMR or insurance claims data.
+
+\subsection{Defining the study population}
+
+The study population was initially selected from those enrolled in the insurance plan between 1999 and 2011 and who had at least one outpatient medical encounter at an ``in-network'' clinic. This initial selection identified 448,306 subjects. The following exclusion criteria were also applied:
+
+\begin{enumerate}
+\item To ensure that we had sufficient time to collect baseline risk factors on subjects, we restricted the analysis to those subjects with at least one year of continuous insurance enrollment. Some of the patients were sporadically enrolled during the period of study; however, for the purpose of our analysis, we ignored gaps in enrollment less than 90 days and considered a patient-member continuously enrolled over this period (these gaps in enrollment are likely due to administrative errors or patients changing employers but still electing coverage with the same HMO).
+\item We included only patients with two medical encounters in the in-network clinic with blood pressure information at least 30 days but at most 1.5 years apart, with drug coverage, and greater than 18 years of age at the end of the baseline period.  These inclusion criteria were implemented because we wanted to predict CV risk among those patients treated routinely in the primary care clinic. Patients who are only infrequently treated in the emergency room or urgent care clinics (i.e., settings where patients are unlikely to be counselled about their CV risk) were not of interest in this analysis.
+\item We included only non-diabetic patients.  Diabetic patients represent a highly specialized population and would benefit from a specialized risk prediction model that is targeted specifically to them, such as the UKPDS model \citep{clarke2004model}, which was beyond the scope for this specific paper.
+\end{enumerate}
+
+The available data on each patient-member was divided into: (i) a baseline period, where the risk factors were ascertained, and (ii) a follow-up period, where we assessed whether a patient experienced a CV event (and, if so, when).  The baseline period consisted of the time between the first blood pressure reading during the enrollment period and the date of the final blood pressure reading at most 1.5 years from the first measurement.  The follow-up period for a patient begins at the end of the baseline period and continues until either the patient experiences a CV event (defined below), or the patient disenrolls from the HMO for more than 90 days, or the data capture period ends (2011), whichever comes first. The distribution of the follow-up periods for the resulting analysis cohort is shown in Figure~\ref{figure:followDist}, which illustrates that a large proportion of subjects are censored before five years of follow-up.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.50\textwidth]{Figure2.eps}
+\caption{Distribution of patient follow-up times, i.e., time from the end of the baseline period until the patient experiences a CV event, the patient disenrolls from the HMO for more than 90 days, or the study ends, in our entire cohort after applying inclusion and exclusion criteria.}
+\label{figure:followDist}
+\end{figure}
+
+\subsection{Risk factor ascertainment}
+
+Risk factors incorporated into the risk models included age, gender, systolic blood pressure (SBP), smoking status, body mass index (BMI), cholesterol-related measurement values (LDL, HDL, TRG), blood pressure and cholesterol medications, as well as indicators of pre-existing cardiovascular disease and other diseases related to CV events (i.e., pre-existing related diagnoses or procedures).  Summary statistics and brief descriptions for the risk factors are given in Table \ref{table:cohortProps}. 
+
+\begin{center}
+\begin{table}
+\tbl{Summary measures of the risk factors included in our prediction models in the entire study cohort.\label{table:cohortProps}}{%
+\begin{tabular}{l|ccl}\hline \noalign{\smallskip}
+                          & {\bf{Median (IQR)}}       &                   &                                                                          \\
+{\bf{Feature Name}}       &      or                   & {\bf{\% Missing}} &  {\bf{Description}}                                                      \\
+                          & {\bf{N (\%)}}             &                   &                                                                          \\ \noalign{\smallskip}\hline\noalign{\smallskip} \hline
+{\bf{Gender}}             &                           &                   &                                                                          \\
+\ \ \ Female              & 102,754 (60.9)            &  0                &                                                                          \\
+\ \ \ Male                &  66,068 (39.1)            &  0                &                                                                          \\
+{\bf{Age }}(Years)        & 43      (31  -  56)       &  0                &  Age  at the end of the baseline period                                  \\
+{\bf{SBP }}(mm Hg)        & 118     (110 - 127)       &  0                &  Mean systolic blood pressure  during baseline period                    \\
+{\bf{BMI }}(kg/m$^2$)     & 26.7    (23.5  -  31.4)   &  14               & Body mass index                                                          \\
+{\bf{LDL }}(mg/dL)        & 115     (94  - 138)       &  66               &  Final low density  lipoprotein during baseline period                   \\
+{\bf{HDL }}(mg/dL)        & 47      (39  -  56)       &  55               &  Final high density  lipoprotein during baseline period                  \\
+{\bf{TRG }}(mg/dL)        & 106     (76  - 153)       &  66               &  Final triglyceride  during baseline period                              \\
+{\bf{Smoking}}            &                           &                   & Smoking status in EMR                                                    \\
+\ \ \ Never or Passive    & 124,580 (73.8)            &   0               &                                                                          \\
+\ \ \ Quit                & 16,655  (9.9)             &   0               &                                                                          \\
+\ \ \ Current             & 27,587  (16.3)            &   0               &                                                                          \\
+{\bf{Comorbidity}}        &                           &                   & Presence of comborbidities related to cardiovascular disease             \\
+\ \ \ Yes                 &  18,031 (10.7)            &   0               &                                                                          \\
+\ \ \ No                  & 150,791 (89.3)            &   0               &                                                                          \\
+{\bf{SBP Meds}}           &                           &                   &  Number of SBP medication classes filled during baseline period          \\
+\ \ \ 0                   & 113,478 (67.2)            &   0               &                                                                          \\
+\ \ \ 1                   & 20,593 (12.2)             &   0               &                                                                          \\
+\ \ \ 2                   & 14,187 ( 8.4)             &   0               &                                                                          \\
+\ \ \ 3+                  & 20,564 (12.2)             &   0               &                                                                          \\
+{\bf{LDL Meds}}           &                           &                   &  Number of LDL medication classes filled during baseline period          \\
+\ \ \ 0                   & 150,049 (88.9)            &   0               &                                                                          \\
+\ \ \ 1+                  & 18,773 (11.1)             &   0               &                                                                          \\ \noalign{\smallskip}
+\hline
+\end{tabular}}
+\end{table}
+\end{center}
+
+
+%{\textbf{Systolic blood pressure (SBP):}} Calculated as an average of all the blood pressure measurements taken during the baseline period. Blood pressure readings obtained during emergency department visits, urgent care visits, hospital admission, and during procedures (e.g., surgeries) were excluded from consideration because they may be influenced by acute conditions.
+%
+%{\textbf{Body mass index (BMI):}} Calculated as a function of patient's height and weight. The height of an individual is the average height measured at any encounter (possibly outside of the baseline period). Because all subjects in the analysis dataset are over 18 years of age, we expect height to remain relatively constant over the follow-up period.  The weight is calculated as an average of all weight measurements taken during the baseline period.
+%
+%{\textbf{Low density lipoprotein (LDL), high density lipoprotein (HDL), and triglycerides (TRG):}} The most recent laboratory measurements before the end of the baseline period is used for these lipid measures including low density lipoprotein, high density lipoprotein, and triglycerides.
+%
+%{\textbf{Smoking status:}} Information about smoking is complicated by the fact that many individual's responses vary considerably over time.  In our dataset, there are four categories of smoking history, never smoked, smoking, quit smoking, and passive (i.e., second-hand) smoking.  In our analysis, a person is considered to have never smoked only if they consistently recorded ``no smoking'' throughout their association with the insurance provider. A person who has recorded at least two ``smoking'' responses is considered currently smoking.  For the purpose of constructing the model we combine the ``passive smoking'' and ``no smoking'' categories.
+%
+%{\textbf{SBP and LDL medications:}} In our model, SBP medications are represented as the number of different medication categories a person is prescribed at the end of the baseline period. In particular, SBP medication categories included: alpha-blockers, beta-blockers, calcium-blockers, ace-inhibitors, angiotensin, vasodialator, and diuretics. LDL medications represents an indicator for whether or not a patient is taking any LDL lowering medications, such as statins and fibrates, at the end of the baseline period.  For our analysis, we ignore information regarding the specific drug dosages because it is difficult to make comparisons between doses from different variants of the same drug.
+
+%A person is considered to be on a particular medication if a prescription for that medication is filled at most 4 months before the end of the baseline %period. We chose a time period of 4 months before the end of baseline because prescriptions are typically valid for 3 months.
+
+%{\textbf{Comorbidities:}} Comorbidities represent serious pre-existing conditions (diseases) and previously occurred CV events or procedures (surgeries).  The existence of comorbidities significantly elevate the risk of having a CV event in the future.  In our study, we included the presence of any of the following diagnoses (including a diagnosis of a ``history of’’ these conditions)  at any point before the end of the baseline period: chronic kidney disease, coronary heart disease, cardiovascular disease, peripheral artery disease, atrial fibrillation, congestive heart failure, myocardial infarction (MI), and stroke. As we discuss below, the diagnosis may be part of the EMR or contained as part of an insurance claim. The risk prediction models that we consider treat comorbidities as a binary variable.
+
+\subsection{Events and censoring}
+
+Cardiovascular events ($\delta = 1$) are defined as the first recorded stroke, myocardial infarction (MI), or procedure proximal to stroke or MI (e.g., coronary artery bypass surgery, stent for either the coronary arteries or carotid artery) after the baseline period, prior to 5 years of follow-up. This information is obtained from diagnosis codes recorded by physicians or inferred from procedures (such as bypass surgery or stent placement) performed on an individual. In addition to using procedure and diagnosis codes to infer if a CV event occurred, we consider a patient to have experienced a CV event if the cause of death listed on the death certificate included MI or stroke. Subjects who do not experience an event within 5 years of the baseline period (including both those with $>5$ years follow-up who may experience an event after 5 years, and those with $< 5$ years of follow-up) are recorded as censored ($\delta =0$).
+
+The total number of first CV events recorded within the follow-up period is 5,410; the Kaplan-Meier 5-year event rate for the entire analysis cohort is 4.53\%.
+
+%%%
+\subsection{Models and evaluation metrics} \label{sect:data-analysis}
+
+[ BRIEFLY DESCRIBE DETAILS OF THE MODELS - VARIABLES INCLUDED, ETC. ]
+
+[ IDEA - Should have TWO types of ``ignore censoring'' models: 1) Treat subjects censored prior to $\tau$ as missing (i.e., omit them. 2) Treat subjects censored prior to $\tau$ as non-events (i.e., assume $E=0$) ]
+
+
+Figure \ref{figure:BayesNet} displays the structure of the Bayesian network that we used to construct our prediction models. The structure was determined by combining known relationships from the medical literature with input from our clinical colleagues. 
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=0.75\textwidth]{bn_model.eps}
+\caption{The graphical model for our Bayesian network for CV risk prediction.  The figure includes the structure of risk factors, conditioned on the CV event status.  In particular, nodes represent input variables and edges represent conditional dependencies between the variables.  The reader should also assume that our outcome variable (CV Event) is connected to every node in the graph (omitted in the picture for parsimony).  Continuous and discrete variables are indicated by elliptical and rectangular nodes, respectively. Nodes in boxes with rounded corners indicate that they are modelled jointly. The nodes are grouped into subgraphs indicated by the dashed boxes. The grey edge between subgraphs indicates an edge from every node in the source subgraph to every node in the destination subgraph or node.  The full description of each of the features appears in Section~\ref{sec:data}. {\em Comorbidity}: Whether or not patient has pre-existing CVD or another comorbidity related to CVD; {\em Smoke}: current smoking status of patient; {\em BMI}: body mass index of patient; {\em SBP}: systolic blood pressure; {\em SBP Med}: Number of blood pressure medication classes currently prescribed to patient; {\em TRG}: triglycerides; {\em HDL}: high density lipoprotein; {\em LDL}: low density lipoprotein (note that TRG, HDL, and LDL are components of a patient's cholesterol measurement and HDL and TRG are modelled jointly); {\em LDL Med}: indicator for whether the patient is on LDL lowering medication.}
+\label{figure:BayesNet}
+\end{figure*}
+
+The models are compared based on their calibration (as described in Section \ref{sec:calibration}) and discrimination metrics, i.e., the C-index and cNRI (as described in Sections \ref{sec:cIndex} and \ref{sec:NRI}). To calculate the cNRI, we defined three risk strata based on clinically relevant cutoffs for the risk of experiencing a cardiovascular event within 5  years: 0-5\% (low risk), 5-10\% (moderate risk), and $>$ 10\% (high risk); risk predictions for an individual were considered discordant between two models if the predictions fell in different ranges. In addition to the calibration and the discrimination metrics, we also plot the difference between average risk and observed risk across different groups of predicted risk. That is, the training set is partitioned into bins with predicted CV risk between 0.0-2.5\%, 2.5-5.0\%, 5.0-7.5\%, 7.5-10.0\%, 10.0-15.0\%, 15.0-20.0\%, and $>$20/0\%.  These bins were based on clinically relevant risk categories suggested by out clinical collaborators (similar categories have been used in prior literature). The observed risk within each bin was computed using the Kaplan-Meier estimator. While the calibration statistic $K$ helps us compare the models using a single numeric metric, these plots provide us with more information regarding the calibration of a model for different risk ranges and the direction of deviation (over- or under-prediction) of the model from the observed risk. A perfectly calibrated model would be indicated by a horizontal line at $0$ line in these plots.
+
+\begin{table}[ht]
+\centering
+\tbl{ Overview of the models considered in the analysis of 5-year cardiovascular event risk.\label{table:modelDisc}}{%
+\begin{tabular}{ll} \hline\noalign{\smallskip}
+\hspace{1em}{\bf{Model Name}}  & {\bf{Description}}  \\ \noalign{\smallskip}\hline\noalign{\smallskip}
+\hline
+\multicolumn{2}{l}{ML techniques treating censored observations as missing}                                                           \\
+\hspace{1em}{\bf{Discard-Logistic}}    & Logistic regression model on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$\\
+\hspace{1em}{\bf{Discard-Bayes}}     & Bayesian network model on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$                                 \\
+\hspace{1em}{\bf{Discard-THIRD}}    & THIRD TECHNIQUE on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$                                                                            \\
+\multicolumn{2}{l}{ML techniques treating censored observations as non-events}                                                           \\
+\hspace{1em}{\bf{Zero-Logistic}}    & Logistic regression model on event indicator $\delta$ \\
+\hspace{1em}{\bf{Zero-Bayes}}     & Bayesian network model with event indicator $\delta$                                 \\
+\hspace{1em}{\bf{Zero-THIRD}}    & THIRD TECHNIQUE using event indicator $\delta$                                                                            \\
+\multicolumn{2}{l}{ML techniques accounting for censoring}                                                                   \\
+\hspace{1em}{\bf{IPCW-Logistic}}    & Logistic regression with inverse probability of censoring weights                                          \\
+\hspace{1em}{\bf{IPCW-Bayes}}    & Bayes with inverse probability of censoring weights                                                 \\
+\hspace{1em}{\bf{IPCW-THIRD}}    & THIRD TECHNIQUE with inverse probability of censoring weights                                                 \\
+\multicolumn{2}{l}{Standard regression-based baseline approach for censored data}                                                      \\
+\hspace{1em}{\bf{COX}}         & Cox proportional hazards model                                                                        \\
+\end{tabular}}
+\end{table}
+
+\section{Results} \label{sect:data-analysis2}
+
+The training dataset consists of 129,428 patients (75\% of the entire analysis population) drawn at random from the cohort. However, as noted above, some of the modeling approaches use only a subset of this training dataset. In particular, those models which exclude patients who did not experience a CV event and did not have 5-years of follow-up were trained on 48,300 subjects. Those models which exclude patients that did not have complete data on all the features were trained on 42,523 subjects. The performance of all models is evaluated based on the risk predictions of the remaining 43,143 patients not included in any training set. 
+
+The calibration and discrimination of the models evaluated on the test set are summarized in Table~\ref{table:resSummary}. 
+
+\begin{table}[ht]
+\centering
+\tbl{Calibration and discrimination of the models described in Table~\ref{table:modelDisc}, evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic K; {\em{C-index}}: Concordance index; {\em{cNRI}}: net reclassification improvement for censored outcomes.  \label{table:resSummary} }{%
+\begin{tabular}{lcccc} \hline\noalign{\smallskip}
+                    &  Predicted event rate (\%) & Calibration statistic K &   C-index   & cNRI (\%)       \\
+                    & (Observed rate: 4.53\%)    &  (Standard error)       &(SE: 0.0005) &(compared to COX)\\ \noalign{\smallskip}\hline\noalign{\smallskip}
+Discard-Bayes             &        6.05                &  137.1 (2.6)            &  0.8843     &     9.40        \\
+Discard-Logistic            &        6.87                &  427.1 (5.8)            &  0.8752     &     8.66        \\
+Discard-THIRD            &        XXX                &  XXX (XX)            &  XXXX     &     XXX        \\
+Zero-Bayes             &        6.05                &  137.1 (2.6)            &  0.8843     &     9.40        \\
+Zero-Logistic            &        6.87                &  427.1 (5.8)            &  0.8752     &     8.66        \\
+Zero-THIRD            &        XXX                &  XXX (XX)            &  XXXX     &     XXX        \\
+IPCW-Logistic            &        XXX                &    XXX (XX)            &  XXX     &     XXX        \\
+IPCW-Bayes            &        4.40                &    7.3 (0.5)            &  0.8845     &     5.50        \\
+IPCW-THIRD  &        XXX                &   XXX (XX)            &  XXX     &     XXX        \\ \noalign{\smallskip}\hline
+\end{tabular}}
+\end{table}
+
+
+\begin{figure}[ht]
+\centering
+%\includegraphics[width=0.90\textwidth]{CalibrationXXFF-Bayes-Cox-logistic.eps}
+\caption{Calibration of Bayesian network models both with and without IPCW, COX, and logistic regression model on the hold-out test set.}
+\label{figure:CalibNoCens}
+\end{figure}
+
+Although the overall improvement in calibration was not very large (Figure~\ref{figure:CalibNoCens}), the Bayesian network model allows for greater flexibility to model CV risk in certain subgroups. The higher discrimination of the Bayesian network models compared to the regression model can be attributed to the fact that these models can capture dependencies/correlations between risk factors (such as SBP and age) and can fit the nonlinearities in the data better than the regression models without higher order terms and interaction effects. For example, it is generally understood that the CV risk rises with increased blood pressure~\citep{stamler1993blood}. In most cases, our data supports this assertion. However for males who are already on a blood pressure medication, the relationship between the risk and blood pressure is not strictly increasing, as we see in Figure \ref{figure:sbpVsriskMeds}. The risk increases with decreasing SBP for SBP below 130 mmHg. This observation is interesting because physicians typically treat SBP down to 130 mmHg for people whose blood pressure is not controlled. Blood pressure being treated below 130 mmHg may indicate an underlying disease which is probably evident to a physician but is not captured by the risk factors that we have trained our model on. The underlying disease increases the risk for this group of patients.
+
+The proportional hazards model that we are using forces a linear relationship between the log hazard and the log of SBP and, thus, ends up modeling the risk well only for people whose blood pressure is relatively elevated. This is evident in Figure \ref{figure:sbpVsriskMeds} which shows that the Bayesian network and THIRD TECHNIQUE model better capture the observed SBP-CV risk relationship. In addition, the C-index of these models are significantly higher than that of the COX model for predictions in this subgroup.
+
+\begin{figure}[ht]
+\centering
+%\includegraphics[width=0.85\textwidth]{Nonlinear-Demo2.eps}
+\caption{Relationship between systolic blood pressure and CV risk for a subgroup of males between ages 40 and 55 who are on SBP medication. }
+\label{figure:sbpVsriskMeds}
+\end{figure}
+
+\section{Discussion}
+
+[ REWRITE ]
+
+[ ONE PARAGRAPH: Allows use of ensemble methods ]
+
+\subsection{Generalizability and future work}
+Though motivated by an example in electronic health data, our technique is generally applicable to any situation where event outcomes are subject to censoring. For example, in economics, one might wish to predict whether recently-unemployed individuals will be re-hired within a fixed time period, an outcome which is likely to be censored in most feasible study designs. In our context, we plan to incorporate this technique into a point-of-care clinical decision support system, which will provide more accurate cardiovascular risk predictions for patients based on their individual health history.
+
+% Acknowledgments
+%\begin{acks}
+%The authors would like to thank Dr. Maura Turolla of Telecom
+%Italia for providing specifications about the application scenario.
+%\end{acks}
+
+% Bibliography
+\bibliographystyle{ACM-Reference-Format-Journals}
+\bibliography{ML_for_censored_refs}
+
+% History dates
+%\received{February 2007}{March 2009}{June 2009}
+
+% Electronic Appendix
+%\elecappendix
+
+%\medskip
+%
+%\section{This is an example of Appendix section head}
+%
+%Channel-switching time is measured as the time length it takes for
+%motes to successfully switch from one channel to another. This
+%parameter impacts the maximum network throughput, because motes
+%cannot receive or send any packet during this period of time, and it
+%also affects the efficiency of toggle snooping in MMSN, where motes
+%need to sense through channels rapidly.
+%
+%By repeating experiments 100 times, we get the average
+%channel-switching time of Micaz motes: 24.3 $\mu$s. We then conduct
+%the same experiments with different Micaz motes, as well as
+%experiments with the transmitter switching from Channel 11 to other
+%channels. In both scenarios, the channel-switching time does not have
+%obvious changes. (In our experiments, all values are in the range of
+%23.6 $\mu$s to 24.9 $\mu$s.)
+%
+%\section{Appendix section head}
+%
+%The primary consumer of energy in WSNs is idle listening. The key to
+%reduce idle listening is executing low duty-cycle on nodes. Two
+%primary approaches are considered in controlling duty-cycles in the
+%MAC layer.
+
+\end{document}

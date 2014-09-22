@@ -41,3 +41,16 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+*.bst
+*.pdf
+*.cls
+*.sty
+*.eps
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.gz
+v2-acmsmall-sample.tex
