@@ -269,14 +269,21 @@ where $p_i(\mathbf{x}) = P(E_i=1 | \mathbf{X_i} = \mathbf{x})$ for the vector of
 \ell(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \left[ E_i \log p_i(\mathbf{x}) + (1-E_i) \log( 1 - p_i(\mathbf{x}) ) \right]
 \label{eq:logreglike}
 \end{equation}
-and can be maximized using a number of techniques, the most common of which is iteratively reweighted least squares [REF]. The solution of $\partial \ell / \partial \bbeta = \mathbf{0}$ is the unique maximum likelihood estimator of $\bbeta$. As shown in \citet{Friedman2000a}, $F(\mathbf{x}) = \log \left( \frac{ p(\mathbf{x}) }{ 1 - p(\mathbf{x}) } \right)$ minimizes $E(e^{-y F(\mathbf{x})})$ and hence it is possible to derive boosting procedures (e.g., LogitBoost) which build an additive predictive model by iteratively maximizing \eqref{eq:logreglike}. 
+and can be maximized using a number of techniques, the most common of which is iteratively reweighted least squares [REF]. The solution of $\partial \ell / \partial \bbeta = \mathbf{0}$ is the unique maximum likelihood estimator of $\bbeta$. 
 
 \subsubsection{IPC-weighted logistic regression}
 
+IPC-weighted logistic regression maximizes the \emph{weighted} log-likelihood
+\begin{equation}
+\ell^\omega(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \omega_i \left[  E_i \log p_i(\mathbf{x}) + (1- E_i) \log( 1 - p_i(\mathbf{x}) ) \right]
+\label{eq:logreglike-weighted}
+\end{equation}
 
-[TUNING LOGISTIC REGRESSION]
+The weights are easily incoporated in standard statistical software. For example, in MATLAB IPC weights can be used in the \texttt{weights} argument of the \texttt{glmfit} function. In R \citep{}, the \texttt{weights} argument of the \texttt{glm} command can be used, or IPC weights can be specified as sampling weights in \texttt{svyglm} from the \texttt{survey} package \citep{}. The former approach in R will generate a warning as the \texttt{weights} argument is designed to specify the number of binomial trials corresponding to each row of the dataset, but the resulting likelihood differs from \eqref{eq:logreglike-weighted} by only a constant factor and hence estimation/prediction is identical to the ``correct'' \texttt{svyglm} approach. 
 
-%%
+Logistic regression using the ``base'' model with only the main (linear) effects of various risk factors is relatively unlikely to produce a well-fitting model, and enlarging the feature set may improve prediction. The IPC weighting technique is easily applied to model selection techniques such as forward and backward selection \citep{} by slightly modifying the scoring criteria used for each model. For example, in forward/backward selection models often are scored based on the Akaike Information Criterion \citep{Akaike1974} given by $AIC = 2 k - 2 \ell$, where $\ell$ is the (log-)likelihood given in \eqref{eq:logreglike}. Hence, an IPC-weighted forward or backward selection approach could use the weighted scoring criterion $AIC^\omega = 2k - 2 \ell^\omega$, with $\ell^\omega$ given in \eqref{eq:logreglike-weighted}.  Alternately, \citet{Friedman2000a} showed that $F(\mathbf{x}) = \log \left( \frac{ p(\mathbf{x}) }{ 1 - p(\mathbf{x}) } \right)$ minimizes $E(e^{-y F(\mathbf{x})})$ and hence it is possible to derive boosting procedures (e.g., LogitBoost) which construct flexible additive predictive models by iteratively maximizing $\ell$. These approaches are easily generalized by maximizing $\ell^\omega$ at each step instead of $\ell$. Note that the IPC weights applied to the likelihood are distinct from the iteratively updated ``case weights'' used in the boosting algorithm to increase the influence of poorly-classified instances, and in practice the weights used in the algorithm will be a product of the two types of weights.
+
+%%%
 \subsection{Bayesian networks}
 Bayesian networks arewell-suited to handle the intricacies of risk prediction from complex health data. Compared to support vector machines or neural networks, Bayesian networks have a clear edge in interpretability, which is important to the end-users of these prediction models in the healthcare domain (e.g., physicians and clinical researchers). Because of their interpretability and their ability to aid in reasoning with uncertainty, Bayesian networks have been used extensively in biomedical applications (see \cite{Lucas_2004} for a review). In particular, they have been: used to aid in understanding of disease prognosis and clinical prediction \citep{Andreassen_1999,Verduijn_2007,Lipsky_2005,Sarkar_2013,Frances_2013,Lappenschaar_2013}; used to guide the selection of the appropriate treatment \citep{Lucas_2000,Kazmierska_2008,Smith_2009,Yet_2013,Velika_2014}; and implemented as part of clinical decision support systems \citep{Lucas_1998,Sesen_2013}.
 

@@ -1,5 +1,4 @@
 library(rpart)
-library(survey) 
 
 IPCW_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {  
   sf <- survfit(Surv(T,C)~1)  
@@ -62,8 +61,11 @@ DISCARD_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {
   return(probs)
 }
 
+library(survey) 
+
 ## IPCW logisitc regression
 IPCW_logistic <- function(T,C,varnms,tau,train.dat,test.dat=NULL,ID=1:nrow(train.dat),...) {  
+
   sf <- survfit(Surv(T,C)~1)  
   sf.C <- survfit(Surv(T,1-C)~1)
   
@@ -80,15 +82,16 @@ IPCW_logistic <- function(T,C,varnms,tau,train.dat,test.dat=NULL,ID=1:nrow(train
     else { return(1/KM.C(min(T[j],tau)))}
   })
   
-  eventsurv.ind <- as.integer(C==1 & T <= tau)
-  fmla <- as.formula(paste0("eventsurv.ind~",paste0(varnms,collapse="+")))
+  eventsurv.ind <- as.factor(C==1 & T <= tau)
   
-  mydesign <- svydesign(id=~ID, weights=~wts, 
-                        data=train.dat) 
+  train.dat$eventsurv <- eventsurv.ind
+  train.dat$ID <- ID
   
+  fmla <- as.formula(paste0("eventsurv~",paste0(varnms,collapse="+")))
+    
+  mydesign <- svydesign(id=~ID, weights=~wts, data=train.dat) 
   LR <- svyglm( fmla, family=quasibinomial(), design=mydesign) 
-  
-  
+    
   if(is.null(test.dat)) {
     probs <- predict(LR,type="response",na.action=na.omit)    
   } else {
