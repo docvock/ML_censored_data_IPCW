@@ -1,6 +1,6 @@
 library(rpart)
 
-IPCW_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {  
+IPCW_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,parmlist=NULL,...) {  
   sf <- survfit(Surv(T,C)~1)  
   sf.C <- survfit(Surv(T,1-C)~1)
   
@@ -17,9 +17,12 @@ IPCW_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {
     else { return(1/KM.C(min(T[j],tau)))}
   })
   
+  excl <- (C==0 & T <= tau)
   eventsurv.ind <- as.factor(C==1 & T <= tau)
-  fmla <- as.formula(paste0("eventsurv.ind~",paste0(varnms,collapse="+")))
-  RP <- rpart(fmla,data=train.dat,weights = wts,method="class",control=rpart.control(...))
+  train.dat$eventsurv <- eventsurv.ind
+  fmla <- as.formula(paste0("eventsurv~",paste0(varnms,collapse="+")))
+  lossmat <- rbind(c(0,1),c(10,0))
+  RP <- rpart(fmla,data=subset(train.dat,!excl),weights = wts[!excl],method="class",parms=parmlist,control=rpart.control(...))
   
   if(is.null(test.dat)) {
     probs <- predict(RP,type="prob",na.action=na.omit)[,1]    
@@ -30,11 +33,13 @@ IPCW_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {
 }
 
 ## Decision tree setting observations censored prior to tau to zero
-ZERO_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {  
+ZERO_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,parmlist=NULL,...) {  
 
   eventsurv.ind <- as.factor(C==1 & T <= tau)
   fmla <- as.formula(paste0("eventsurv.ind~",paste0(varnms,collapse="+")))
-  RP <- rpart(fmla,data=train.dat,method="class",control=rpart.control(...))
+
+  lossmat <- rbind(c(0,1),c(10,0))
+  RP <- rpart(fmla,data=train.dat,method="class",parms=parmlist,control=rpart.control(...))
   
   if(is.null(test.dat)) {
     probs <- predict(RP,type="prob",na.action=na.omit)[,1]    
@@ -45,14 +50,15 @@ ZERO_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {
 }
 
 ## Decision tree discarding all "unknown" results
-DISCARD_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {  
+DISCARD_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,parmlist=NULL,...) {  
   
+  excl <- (C==0 & T <= tau)
   eventsurv.ind <- as.factor(C==1 & T <= tau)
-
   train.dat$eventsurv <- eventsurv.ind
   fmla <- as.formula(paste0("eventsurv~",paste0(varnms,collapse="+")))
-  RP <- rpart(fmla,data=subset(train.dat,!(T<=tau & C==0)),method="class",control=rpart.control(...))
-  
+  lossmat <- rbind(c(0,1),c(10,0))
+  RP <- rpart(fmla,data=subset(train.dat,!excl),method="class",parms=parmlist,control=rpart.control(...))
+    
   if(is.null(test.dat)) {
     probs <- predict(RP,type="prob",na.action=na.omit)[,1]    
   } else {
@@ -63,7 +69,7 @@ DISCARD_rpart <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {
 
 library(survey) 
 
-## IPCW logisitc regression
+## IPCW logistic regression
 IPCW_logistic <- function(T,C,varnms,tau,train.dat,test.dat=NULL,ID=1:nrow(train.dat),...) {  
 
   sf <- survfit(Surv(T,C)~1)  
@@ -134,20 +140,16 @@ DISCARD_logistic <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {
   return(1-probs)
 }
 
-library(survMisc)
+COX <- function(T,C,varnms,tau,train.dat,test.dat=NULL,...) {
+  fmla <- as.formula(paste0("Surv(T,C)~",paste0(varnms,collapse="+")))
+  Cox.train <- coxph(fmla,data=train.dat)
+  p1 <- survfit(Cox.train,test.dat[1,varnms])
+  ind.surv <- max(which(p1$time<=SURVTIME*365))
 
-## Define the calibration statistic
-calib.stat <- function(p,cutpts,t,T.test,C.test) {
-  risk.class <- cut(p,cutpts,labels=FALSE)
-  lev.stats <- sapply(1:(length(cutpts)-1),function(f) {
-    ind <- which(risk.class==f)
-    S.KM <- calcSurv(Surv(T.test[ind],C.test[ind]))
-    ind.surv <- max(which(S.KM$t<=t))
-    p.KM <- S.KM$SKM[ind.surv]
-    ##print(c(cutpts[f],p.KM,mean(p[ind],na.rm=TRUE),sqrt(S.KM$SKMV[ind.surv])))
-    (mean(p[ind],na.rm=TRUE) - p.KM)^2/S.KM$SKMV[ind.surv]
-  })
-  
-  sum(lev.stats,na.rm=TRUE)
+  if(is.null(test.dat)) {
+    probs <- survfit(Cox.train,se.fit=FALSE,conf.type="none")$surv[ind.surv,]  
+  } else {
+    probs <- survfit(Cox.train,test.dat[,varnms],se.fit=FALSE,conf.type="none")$surv[ind.surv,]
+  }
+  return(probs)
 }
-
