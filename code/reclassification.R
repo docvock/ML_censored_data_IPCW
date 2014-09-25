@@ -65,10 +65,12 @@ compute.cNRI <- function(risks.1,risks.2,T,C,t) {
 ## C-index for censored data due to Harrell
 compute.cIndex <- function(pred,T,C,t) {
   
-  A <- outer(T[C==1&T<=t],T,FUN=function(x,y){as.integer(x<y)})
-  B <- outer(pred[C==1&T<=t],pred,FUN=function(x,y){as.integer(x<y)})
+  ind1 <- (C==1&T<=t)
+  ind2 <- ind1 | (T>t)
+  A <- outer(T[ind1],T[ind2],FUN=function(x,y){as.integer(x<y)})
+  B <- outer(pred[ind1],pred[ind2],FUN=function(x,y){as.integer(x<y)})
   
   num <- sum(A*B)
-  denom <- sum(A)
+  denom <- length(A)
   num/denom
 }
