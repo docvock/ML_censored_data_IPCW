@@ -62,15 +62,14 @@ compute.cNRI <- function(risks.1,risks.2,T,C,t) {
   c(cNRI.events=nri.e,cNRI.nonevents=nri.ne,cNRI=nri.e+nri.ne)
 }
 
+
 ## C-index for censored data due to Harrell
+library(Hmisc)
 compute.cIndex <- function(pred,T,C,t) {
+
+  C.surv <- ifelse(T<=t & C==1,1,0)
+  T.surv <- T
   
-  ind1 <- (C==1&T<=t)
-  ind2 <- ind1 | (T>t)
-  A <- outer(T[ind1],T[ind2],FUN=function(x,y){as.integer(x<y)})
-  B <- outer(pred[ind1],pred[ind2],FUN=function(x,y){as.integer(x<y)})
-  
-  num <- sum(A*B)
-  denom <- length(A)
-  num/denom
+  survConcordance(Surv(T.surv,C.surv)~pred)$concordance
+ 
 }
