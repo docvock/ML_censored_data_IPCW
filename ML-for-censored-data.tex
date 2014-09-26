@@ -516,15 +516,15 @@ The models are compared based on their calibration (as described in Section \ref
 \multicolumn{2}{l}{ML techniques treating censored observations as missing}                                                           \\
 \hspace{1em}{\bf{Discard-Logistic}}    & Logistic regression model on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$\\
 \hspace{1em}{\bf{Discard-Bayes}}     & Bayesian network model on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$                                 \\
-\hspace{1em}{\bf{Discard-THIRD}}    & THIRD TECHNIQUE on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$                                                                            \\
+\hspace{1em}{\bf{Discard-Tree}}    & Classification tree on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$                                                                            \\
 \multicolumn{2}{l}{ML techniques treating censored observations as non-events}                                                           \\
 \hspace{1em}{\bf{Zero-Logistic}}    & Logistic regression model on event indicator $\delta$ \\
 \hspace{1em}{\bf{Zero-Bayes}}     & Bayesian network model with event indicator $\delta$                                 \\
-\hspace{1em}{\bf{Zero-THIRD}}    & THIRD TECHNIQUE using event indicator $\delta$                                                                            \\
+\hspace{1em}{\bf{Zero-Tree}}    & Classification tree using event indicator $\delta$                                                                            \\
 \multicolumn{2}{l}{ML techniques accounting for censoring}                                                                   \\
 \hspace{1em}{\bf{IPCW-Logistic}}    & Logistic regression with inverse probability of censoring weights                                          \\
 \hspace{1em}{\bf{IPCW-Bayes}}    & Bayes with inverse probability of censoring weights                                                 \\
-\hspace{1em}{\bf{IPCW-THIRD}}    & THIRD TECHNIQUE with inverse probability of censoring weights                                                 \\
+\hspace{1em}{\bf{IPCW-Tree}}    & Classification tree with inverse probability of censoring weights                                                 \\
 \multicolumn{2}{l}{Standard regression-based baseline approach for censored data}                                                      \\
 \hspace{1em}{\bf{COX}}         & Cox proportional hazards model                                                                        \\
 \end{tabular}}
@@ -540,17 +540,21 @@ The calibration and discrimination of the models evaluated on the test set are s
 \centering
 \tbl{Calibration and discrimination of the models described in Table~\ref{table:modelDisc}, evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic K; {\em{C-index}}: Concordance index; {\em{cNRI}}: net reclassification improvement for censored outcomes.  \label{table:resSummary} }{%
 \begin{tabular}{lcccc} \hline\noalign{\smallskip}
-                    &  Predicted event rate (\%) & Calibration statistic K &   C-index   & cNRI (\%)       \\
-                    & (Observed rate: 4.53\%)    &  (Standard error)       &(SE: 0.0005) &(compared to COX)\\ \noalign{\smallskip}\hline\noalign{\smallskip}
-Discard-Bayes             &        6.05                &  137.1 (2.6)            &  0.8843     &     9.40        \\
-Discard-Logistic            &        6.87                &  427.1 (5.8)            &  0.8752     &     8.66        \\
-Discard-THIRD            &        XXX                &  XXX (XX)            &  XXXX     &     XXX        \\
-Zero-Bayes             &        6.05                &  137.1 (2.6)            &  0.8843     &     9.40        \\
-Zero-Logistic            &        6.87                &  427.1 (5.8)            &  0.8752     &     8.66        \\
-Zero-THIRD            &        XXX                &  XXX (XX)            &  XXXX     &     XXX        \\
-IPCW-Logistic            &        XXX                &    XXX (XX)            &  XXX     &     XXX        \\
+                    &  Predicted event rate (\%) & Calibration statistic &   C-index   & cNRI (\%)       \\
+                    \noalign{\smallskip}\hline\noalign{\smallskip}
+IPCW-Tree & 5.38 & 18.256 & 0.803 & -3.2 \\ 
+  Zero-Tree & 4.15 & 129.947 & 0.792 &  \\ 
+  Discard-Tree & 7.10 & 66.520 & 0.793 &  \\ 
+  \hline
+  IPCW-Logistic & 5.34 & 17.869 & 0.809 & -2.8 \\ 
+  Zero-Logistic & 4.14 & 115.398 & 0.809 &  \\ 
+  Discard-Logistic & 7.08 & 49.570 & 0.809 &  \\ 
+  \hline
 IPCW-Bayes            &        4.40                &    7.3 (0.5)            &  0.8845     &     5.50        \\
-IPCW-THIRD  &        XXX                &   XXX (XX)            &  XXX     &     XXX        \\ \noalign{\smallskip}\hline
+Zero-Bayes             &        6.05                &  137.1 (2.6)            &  0.8843     &     9.40        \\
+Discard-Bayes             &        XXX                &  XXX            &  XXX     &     9.40        \\
+\hline
+  Cox & 5.64 & 4.869 & 0.810 &  \\ 
 \end{tabular}}
 \end{table}
 
