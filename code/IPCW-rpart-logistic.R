@@ -12,9 +12,14 @@ library(data.table)
 ## Read the data
 #HP <- fread(paste0(dat.base,"Data_ver-2.3.1_updated.csv"),verbose=TRUE)
 HP.imp <- fread(paste0(dat.base,"Data_ver-2.3.1_imputed.csv"),verbose=TRUE)
-HP <- subset(HP.imp,age>=40 & Comorbidity_All==0) ## Only those over age 40 without comorbidities
+HP <- subset(HP.imp,age>=40 & Comorbidity_All==0) ## Only those: Over age 40, no comorbidities
 
-frac.train <- 0.75
+HP$Smoking1 <- as.integer(HP$Smoking==1)
+HP$Smoking2 <- as.integer(HP$Smoking==2)
+
+varnms <- c("gender","age","SBP","BMI","HDL","TC","SBP_Meds","Smoking1","Smoking2","Has_Diab")
+
+frac.train <- 0.7
 train.set <- sample(1:nrow(HP),frac.train*nrow(HP),replace=FALSE)
 test.set <- setdiff(1:nrow(HP),train.set)
 
@@ -25,27 +30,24 @@ HP.test <- data.frame(HP[test.set,])
 T.train <- HP.train$DaysToEvent_Fram
 C.train <- HP.train$CVDEvent_Fram
 
-varnms <- c("gender","age","SBP","BMI","HDL","TC","Has_Diab","Smoking")
-##varnms <- c("age","gender","SBP","BMI","HDL","TC") ## Reasonably well-calibrated
-
 library(peperr)
 
 T.test <- HP.test$DaysToEvent_Fram
 C.test <- HP.test$CVDEvent_Fram
 
-SURVTIME <- 7 ## Time horizon for prediction in years
+SURVTIME <- 5 ## Time horizon for prediction in years
 
 ### Fit the regression tree models
-lossmat <- rbind(c(0,1),c(5,0))
+lossmat <- rbind(c(0,1),c(10,0))
 pRP <- IPCW_rpart(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test,
                   parmlist=list(loss=lossmat,split="information"),
-                  cp=0.0001,minbucket=100)
+                  cp=0,minbucket=200)
 pRP.zero <- ZERO_rpart(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test,
                   parmlist=list(loss=lossmat,split="information"),
-                  cp=0.0001,minbucket=100)
+                  cp=0,minbucket=200)
 pRP.disc <- DISCARD_rpart(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test,
                   parmlist=list(loss=lossmat,split="information"),
-                  cp=0.0001,minbucket=100)
+                  cp=0,minbucket=200)
 
 ### Fit the logistic models
 pLR <- IPCW_logistic(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test)
@@ -64,10 +66,13 @@ pCOX <- COX(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test)
 
 ## Define a results table
 
-results.tab <- data.frame(method=c("rpart_ipcw","rpart_zero","rpart_discard","lr_ipcw","lr_zero","lr_disc","cox"))
+results.tab <- data.frame(method=c("IPCW-Tree","Zero-Tree","Discard-Tree","IPCW-Logistic","Zero-Logistic","Discard-Logistic","Cox"))
+
+### Compute the overall predicted event rate
+event.rates <- 1-unlist(lapply(list(pRP,pRP.zero,pRP.disc,pLR,pLR.zero,pLR.disc,pCOX),mean))
+results.tab$pct <- 100*event.rates
 
 ### Compute the calibration
-
 risk.cutpts = c(Inf,1-c(0.05,0.1,0.15,0.2),-Inf)
 
 calib.stats <- unlist(lapply(list(pRP,pRP.zero,pRP.disc,pLR,pLR.zero,pLR.disc,pCOX),function(prob){
@@ -89,19 +94,24 @@ rLR.disc <- cut(1-pLR.disc,breaks=brks,labels=FALSE)
 
 rCOX <- cut(1-pCOX,breaks=brks,labels=FALSE)
 
-RR.c <- lapply(list(rRP,rRP.zero,rRP.disc,rLR,rLR.zero,rLR.disc),function(rP) {
+cIndex <- lapply(list(pRP,pRP.zero,pRP.disc,pLR,pLR.zero,pLR.disc,pCOX),function(pred) {
+  ind <- !is.na(pred)
+  compute.cIndex(1-pred[ind],T.test[ind],C.test[ind],SURVTIME*365)
+})
+
+results.tab$cIndex <- unlist(cIndex)
+
+cNRI <- lapply(list(rRP,rLR),function(rP) {
   ind <- !is.na(rP)
   compute.cNRI(rCOX[ind],rP[ind],T.test[ind],C.test[ind],SURVTIME*365)
 })  
 
 results.tab$cNRI <- rep(NA,nrow(results.tab))
-results.tab$cNRI[-nrow(results.tab)] <- do.call(rbind,RR.c)[,3] 
-
-cIndex <- lapply(list(pRP,pRP.zero,pRP.disc,pLR,pLR.zero,pLR.disc,pCOX),function(pred) {
-  ind <- !is.na(pred)
-  compute.cIndex(pred[ind],T.test[ind],C.test[ind],SURVTIME*365)
-})
-
-results.tab$cIndex <- unlist(cIndex)
+results.tab$cNRI[c(1,4)] <- do.call(rbind,cNRI)[,3] 
 
 print(results.tab)
+summ <- summary(survfit(Surv(T.test,C.test)~1))
+## Overall event probability
+summ$surv[max(which(summ$time<=SURVTIME*365))]
+
+print(xtable(results.tab,align="ll|cccc",digits=c(0,0,2,3,3,3)),include.rownames=FALSE,only.contents=TRUE)
