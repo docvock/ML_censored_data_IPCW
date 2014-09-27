@@ -19,7 +19,7 @@ HP$Smoking2 <- as.integer(HP$Smoking==2)
 
 varnms <- c("gender","age","SBP","BMI","HDL","TC","SBP_Meds","Smoking1","Smoking2","Has_Diab")
 
-frac.train <- 0.7
+frac.train <- 0.75
 train.set <- sample(1:nrow(HP),frac.train*nrow(HP),replace=FALSE)
 test.set <- setdiff(1:nrow(HP),train.set)
 
@@ -40,13 +40,13 @@ SURVTIME <- 5 ## Time horizon for prediction in years
 ### Fit the regression tree models
 lossmat <- rbind(c(0,1),c(10,0))
 pRP <- IPCW_rpart(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test,
-                  parmlist=list(loss=lossmat,split="information"),
+                  parmlist=list(loss=lossmat,split="gini"),
                   cp=0,minbucket=200)
 pRP.zero <- ZERO_rpart(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test,
-                  parmlist=list(loss=lossmat,split="information"),
+                  parmlist=list(loss=lossmat,split="gini"),
                   cp=0,minbucket=200)
 pRP.disc <- DISCARD_rpart(T.train,C.train,varnms,SURVTIME*365,HP.train,HP.test,
-                  parmlist=list(loss=lossmat,split="information"),
+                  parmlist=list(loss=lossmat,split="gini"),
                   cp=0,minbucket=200)
 
 ### Fit the logistic models
