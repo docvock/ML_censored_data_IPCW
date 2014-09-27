@@ -286,7 +286,9 @@ Logistic regression using the ``base'' model with only the main (linear) effects
 
 %%%
 \subsection{Bayesian networks}
-Bayesian networks arewell-suited to handle the intricacies of risk prediction from complex health data. Compared to support vector machines or neural networks, Bayesian networks have a clear edge in interpretability, which is important to the end-users of these prediction models in the healthcare domain (e.g., physicians and clinical researchers). Because of their interpretability and their ability to aid in reasoning with uncertainty, Bayesian networks have been used extensively in biomedical applications (see \cite{Lucas_2004} for a review). In particular, they have been: used to aid in understanding of disease prognosis and clinical prediction \citep{Andreassen_1999,Verduijn_2007,Lipsky_2005,Sarkar_2013,Frances_2013,Lappenschaar_2013}; used to guide the selection of the appropriate treatment \citep{Lucas_2000,Kazmierska_2008,Smith_2009,Yet_2013,Velika_2014}; and implemented as part of clinical decision support systems \citep{Lucas_1998,Sesen_2013}.
+\label{sect:BN}
+
+Bayesian networks are well-suited to handle the intricacies of risk prediction from complex health data. Compared to support vector machines or neural networks, Bayesian networks have a clear edge in interpretability, which is important to the end-users of these prediction models in the healthcare domain (e.g., physicians and clinical researchers). Because of their interpretability and their ability to aid in reasoning with uncertainty, Bayesian networks have been used extensively in biomedical applications (see \cite{Lucas_2004} for a review). In particular, they have been: used to aid in understanding of disease prognosis and clinical prediction \citep{Andreassen_1999,Verduijn_2007,Lipsky_2005,Sarkar_2013,Frances_2013,Lappenschaar_2013}; used to guide the selection of the appropriate treatment \citep{Lucas_2000,Kazmierska_2008,Smith_2009,Yet_2013,Velika_2014}; and implemented as part of clinical decision support systems \citep{Lucas_1998,Sesen_2013}.
 
 %Let the features recorded on a patient be represented by a $p$-dimensional vector $\mathbf{X} = (X_1 \cdots X_p)$ where $X_i$ is the $i^\mathrm{th}$ risk factor (some of the factors could be missing for certain patients). Let $E=1$ indicate that an event (e.g., a CV event) occurred for a given patient within $\tau$ years of the beginning of the follow-up period, and $E=0$ indicate the absence of such an event in that time frame. Though our ultimate goal is to handle the case where $E$ is unknown for some patients, for now we assume that at least $\tau$ years of follow-up is available on each patient so that $E$ is fully observed.
 
@@ -406,62 +408,65 @@ Because of their flexibility, regression trees often overfit training data. Many
 %%%
 \section{Example Application: Predicting cardiovascular risk using electronic health data}\label{sec:data}
 
-We now illustrate the application of IPC-weighted risk prediction methods to the problem of predicting the risk of a cardiovascular event from electronic health data. The data come from a healthcare system in the Midwestern United States, and were extracted from the HMO Research Network Virtual Data Warehouse (HMORN VDW) associated with that system. The VDW stores data in standardized data structures including insurance enrollment, demographics, pharmaceutical dispensing, utilization, vital signs, laboratory, census and death records. This health care system includes both an insurance plan and a medical care network in an open system which is partially overlapping. That is, patients of the insurance plan may be served by either the internal medical care network and or by external healthcare providers, and the medical care network serves patients within and outside of the insurance plan.  Patient-members who do not visit any of the clinics and hospitals in-network do not have any medical information (e.g., blood pressure information) included in the electronic medical record (EMR) of this system. Furthermore, once the patient-member disenrolls from the HMO, the patient no longer has any information recorded in the EMR or insurance claims data.
+We now illustrate the application of IPC-weighted risk prediction methods to the problem of predicting the risk of a cardiovascular event from electronic health data. The data come from a healthcare system in the Midwestern United States, and were extracted from the HMO Research Network Virtual Data Warehouse (HMORN VDW) associated with that system. The VDW stores data including insurance enrollment, demographics, pharmaceutical dispensing, utilization, vital signs, laboratory, census and death records. This health care system includes both an insurance plan and a medical care network in an open system which is partially overlapping. That is, patients of the insurance plan may be served by either the internal medical care network and or by external healthcare providers, and the medical care network serves patients within and outside of the insurance plan.  Patient-members who do not visit any of the clinics and hospitals in-network do not have any medical information (e.g., blood pressure information) included in the electronic medical record (EMR) of this system. Furthermore, once the patient-member disenrolls from the HMO, the patient is right-censored as there is no longer any information on risk factors or outcomes (i.e., CV events) recorded in the EMR or insurance claims data.
 
+%%%
 \subsection{Defining the study population}
+\label{sect:studypop}
 
-The study population was initially selected from those enrolled in the insurance plan between 1999 and 2011 and who had at least one outpatient medical encounter at an ``in-network'' clinic. This initial selection identified 448,306 subjects. The following exclusion criteria were also applied:
+The study population was initially selected from those enrolled in the insurance plan between 1999 and 2011 and who had at least one outpatient medical encounter at an in-network clinic. From this initial database of 448,306 subjects, an analysis population of was identified by applying the following inclusion/exclusion criteria. 
 
 \begin{enumerate}
-\item To ensure that we had sufficient time to collect baseline risk factors on subjects, we restricted the analysis to those subjects with at least one year of continuous insurance enrollment. Some of the patients were sporadically enrolled during the period of study; however, for the purpose of our analysis, we ignored gaps in enrollment less than 90 days and considered a patient-member continuously enrolled over this period (these gaps in enrollment are likely due to administrative errors or patients changing employers but still electing coverage with the same HMO).
-\item We included only patients with two medical encounters in the in-network clinic with blood pressure information at least 30 days but at most 1.5 years apart, with drug coverage, and greater than 18 years of age at the end of the baseline period.  These inclusion criteria were implemented because we wanted to predict CV risk among those patients treated routinely in the primary care clinic. Patients who are only infrequently treated in the emergency room or urgent care clinics (i.e., settings where patients are unlikely to be counselled about their CV risk) were not of interest in this analysis.
-\item We included only non-diabetic patients.  Diabetic patients represent a highly specialized population and would benefit from a specialized risk prediction model that is targeted specifically to them, such as the UKPDS model \citep{clarke2004model}, which was beyond the scope for this specific paper.
+\item To ensure sufficient time to collect baseline risk factors on subjects, the analysis was restricted to those subjects with at least one year of continuous insurance enrollment. Some of the patients were sporadically enrolled during the period of study; however, for the purpose of our analysis, we ignored gaps in enrollment less than 90 days and considered a patient-member continuously enrolled over this period. These gaps in enrollment are likely due to administrative errors or patients changing employers but still electing coverage with the same HMO.
+\item We included only patients with two medical encounters in the in-network clinic with blood pressure information at least 30 days but at most 1.5 years apart, with drug coverage, and greater than 18 years of age at the end of the baseline period.  
+\item Patients under the age of 40 were excluded.
+\item Subjects with pre-existing serious comorbidities (prior CV event, chronic kidney disease, etc., not including diabetes) were excluded.
 \end{enumerate}
 
-The available data on each patient-member was divided into: (i) a baseline period, where the risk factors were ascertained, and (ii) a follow-up period, where we assessed whether a patient experienced a CV event (and, if so, when).  The baseline period consisted of the time between the first blood pressure reading during the enrollment period and the date of the final blood pressure reading at most 1.5 years from the first measurement.  The follow-up period for a patient begins at the end of the baseline period and continues until either the patient experiences a CV event (defined below), or the patient disenrolls from the HMO for more than 90 days, or the data capture period ends (2011), whichever comes first. The distribution of the follow-up periods for the resulting analysis cohort is shown in Figure~\ref{figure:followDist}, which illustrates that a large proportion of subjects are censored before five years of follow-up.
+These criteria ensure that the analysis population consists of a diverse group of subjects at non-trivial risk of experiencing a CV event, who were treated routinely in the primary care clinic. Patients who are only infrequently treated in the emergency room or urgent care clinics (i.e., settings where patients are unlikely to be counselled about their CV risk) were not of interest in this analysis. Subjects with comorbidities were excluded because comorbidity information was recorded inconsistently and because, as a group, these subjects have an extremely high 5-year event rate and hence are of limited interest for risk prediction models because they are almost uniformly being aggressively treated to manage their cardiovascular risk. After applying the above criteria, our final analysis dataset contained XXXX individuals.
+
+The available longitudinal data on each patient-member were divided into: (i) a \emph{baseline} period, where the risk factors were ascertained, and (ii) a \emph{follow-up} period, where we assessed whether a patient experienced a CV event (and, if so, when).  The baseline period consisted of the time between the first blood pressure reading during the enrollment period and the date of the final blood pressure reading at most 1.5 years from the first measurement.  The follow-up period for a patient begins at the end of the baseline period and continues until either the patient experiences a CV event (defined below), the patient disenrolls from the HMO for more than 90 days, or the data capture period ends (in 2011), whichever comes first. The distribution of the follow-up periods for the resulting analysis cohort is shown in Figure~\ref{figure:followDist}, which illustrates that a large proportion of subjects are censored before five years of follow-up information is available.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.50\textwidth]{Figure2.eps}
-\caption{Distribution of patient follow-up times, i.e., time from the end of the baseline period until the patient experiences a CV event, the patient disenrolls from the HMO for more than 90 days, or the study ends, in our entire cohort after applying inclusion and exclusion criteria.}
+\caption{Distribution of follow-up times, i.e., time from the end of the baseline period until the patient experiences a CV event, the patient disenrolls from the HMO for more than 90 days, or the study ends, in our entire cohort after applying inclusion/ exclusion criteria detailed in Section \ref{sect:studypop}.}
 \label{figure:followDist}
 \end{figure}
 
+%%%
 \subsection{Risk factor ascertainment}
+\label{sect:riskfactors}
 
-Risk factors incorporated into the risk models included age, gender, systolic blood pressure (SBP), smoking status, body mass index (BMI), cholesterol-related measurement values (LDL, HDL, TRG), blood pressure and cholesterol medications, as well as indicators of pre-existing cardiovascular disease and other diseases related to CV events (i.e., pre-existing related diagnoses or procedures).  Summary statistics and brief descriptions for the risk factors are given in Table \ref{table:cohortProps}. 
+Risk factors used in the prediction models included age, gender, systolic blood pressure (SBP), use of blood pressure medications, cholesterol markers (HDL and total cholesterol), body mass index (BMI), smoking status, and presence/absence of diabetes.  Summary statistics and brief descriptions for the risk factors are given in Table \ref{table:cohortProps}. Missing risk factor values were filled in using multiple imputation by chained equations \citep{REF} to create a dataset with no mising values
 
 \begin{center}
 \begin{table}
-\tbl{Summary measures of the risk factors included in our prediction models in the entire study cohort.\label{table:cohortProps}}{%
+\tbl{Distribution of risk factors in the analysis dataset.\label{table:cohortProps}}{%
 \begin{tabular}{l|ccl}\hline \noalign{\smallskip}
-                          & {\bf{Median (IQR)}}       &                   &                                                                          \\
-{\bf{Feature Name}}       &      or                   & {\bf{\% Missing}} &  {\bf{Description}}                                                      \\
-                          & {\bf{N (\%)}}             &                   &                                                                          \\ \noalign{\smallskip}\hline\noalign{\smallskip} \hline
+                          & {\bf{Median (IQR)}}       &   {\bf{\% missing}}                &                                                                          \\
+{\bf{Feature Name}}       &      or                   & {\bf{(in}} &  {\bf{Description}}                                                      \\
+                          & {\bf{N (\%)}}             &     {\bf{original data)}}              &                                                                          \\ \noalign{\smallskip}\hline\noalign{\smallskip} \hline
 {\bf{Gender}}             &                           &                   &                                                                          \\
 \ \ \ Female              & 102,754 (60.9)            &  0                &                                                                          \\
 \ \ \ Male                &  66,068 (39.1)            &  0                &                                                                          \\
 {\bf{Age }}(Years)        & 43      (31  -  56)       &  0                &  Age  at the end of the baseline period                                  \\
 {\bf{SBP }}(mm Hg)        & 118     (110 - 127)       &  0                &  Mean systolic blood pressure  during baseline period                    \\
 {\bf{BMI }}(kg/m$^2$)     & 26.7    (23.5  -  31.4)   &  14               & Body mass index                                                          \\
-{\bf{LDL }}(mg/dL)        & 115     (94  - 138)       &  66               &  Final low density  lipoprotein during baseline period                   \\
 {\bf{HDL }}(mg/dL)        & 47      (39  -  56)       &  55               &  Final high density  lipoprotein during baseline period                  \\
-{\bf{TRG }}(mg/dL)        & 106     (76  - 153)       &  66               &  Final triglyceride  during baseline period                              \\
 {\bf{Smoking}}            &                           &                   & Smoking status in EMR                                                    \\
 \ \ \ Never or Passive    & 124,580 (73.8)            &   0               &                                                                          \\
 \ \ \ Quit                & 16,655  (9.9)             &   0               &                                                                          \\
 \ \ \ Current             & 27,587  (16.3)            &   0               &                                                                          \\
-{\bf{Comorbidity}}        &                           &                   & Presence of comborbidities related to cardiovascular disease             \\
-\ \ \ Yes                 &  18,031 (10.7)            &   0               &                                                                          \\
-\ \ \ No                  & 150,791 (89.3)            &   0               &                                                                          \\
 {\bf{SBP Meds}}           &                           &                   &  Number of SBP medication classes filled during baseline period          \\
 \ \ \ 0                   & 113,478 (67.2)            &   0               &                                                                          \\
 \ \ \ 1                   & 20,593 (12.2)             &   0               &                                                                          \\
 \ \ \ 2                   & 14,187 ( 8.4)             &   0               &                                                                          \\
 \ \ \ 3+                  & 20,564 (12.2)             &   0               &                                                                          \\
-{\bf{LDL Meds}}           &                           &                   &  Number of LDL medication classes filled during baseline period          \\
-\ \ \ 0                   & 150,049 (88.9)            &   0               &                                                                          \\
-\ \ \ 1+                  & 18,773 (11.1)             &   0               &                                                                          \\ \noalign{\smallskip}
+{\bf{Diabetes}}            &                           &                   & Subject has a current diagnosis of diabetes                                                    \\
+\ \ \ Yes    & 124,580 (73.8)            &   0               &                                                                          \\
+\ \ \ No               & 16,655  (9.9)             &   0               &                                                                          \\
+\noalign{\smallskip}
 \hline
 \end{tabular}}
 \end{table}
@@ -486,55 +491,51 @@ Risk factors incorporated into the risk models included age, gender, systolic bl
 
 Cardiovascular events ($\delta = 1$) are defined as the first recorded stroke, myocardial infarction (MI), or procedure proximal to stroke or MI (e.g., coronary artery bypass surgery, stent for either the coronary arteries or carotid artery) after the baseline period, prior to 5 years of follow-up. This information is obtained from diagnosis codes recorded by physicians or inferred from procedures (such as bypass surgery or stent placement) performed on an individual. In addition to using procedure and diagnosis codes to infer if a CV event occurred, we consider a patient to have experienced a CV event if the cause of death listed on the death certificate included MI or stroke. Subjects who do not experience an event within 5 years of the baseline period (including both those with $>5$ years follow-up who may experience an event after 5 years, and those with $< 5$ years of follow-up) are recorded as censored ($\delta =0$).
 
-The total number of first CV events recorded within the follow-up period is 5,410; the Kaplan-Meier 5-year event rate for the entire analysis cohort is 4.53\%.
+The total number of first CV events recorded within the follow-up period is XXXX; the Kaplan-Meier 5-year event rate for the entire analysis cohort is XXX\%.
 
 %%%
-\subsection{Models and evaluation metrics} \label{sect:data-analysis}
+\section{Models and results} \label{sect:data-analysis}
 
-[ BRIEFLY DESCRIBE DETAILS OF THE MODELS - VARIABLES INCLUDED, ETC. ]
+We applied and evaluated three variants of each of the machine learning techniques described in Section \ref{sect:examples} to our data. The variants differ in their handling of censored observations:
+\begin{enumerate}
+\item \textbf{Treat censored observations as non-events}. Techniques using this strategy are denoted with the prefix \emph{Zero-}. 
+\item \textbf{Discard censored observations}. Techniques using this strategy are given the prefix \emph{Discard-}. 
+\item \textbf{Use IPCW}. The resulting techniques, as described in Section \ref{sect:examples}, have the prefix \emph{IPCW-}. 
+\end{enumerate}
 
-[ IDEA - Should have TWO types of ``ignore censoring'' models: 1) Treat subjects censored prior to $\tau$ as missing (i.e., omit them. 2) Treat subjects censored prior to $\tau$ as non-events (i.e., assume $E=0$) ]
+Model performance was assessed based on calibration (as described in Section \ref{sec:calibration}) and discrimination metrics, i.e., the C-index and cNRI (as described in Sections \ref{sec:cIndex} and \ref{sec:NRI}). To calculate the calibration statistic and cNRI, we defined five risk strata based on clinically relevant cutoffs for the risk of experiencing a cardiovascular event within 5 years: 0-5\%, 5-10\%, $10-15\%$, $15-20\%$ and $>$ 20\%. For the cNRI, risk predictions for an individual were considered discordant between two models if the predictions fell in different ranges. With the exception of the Bayesian network, for which custom Matlab code was written, all models were fitted using the open-source statistical software program R \citep{REF}.
 
+We now provide some implementation details for the various machine learning techniques.
+
+\subsection{Logistic regression}
+
+Logistic regression models were defined as
+\[
+\log \left( \frac{p_E}{1 - p_E} \right) = \beta_0 + \beta_1 RF_1 + \beta_2 RF_2 + \dots
+\]
+where $p_E$ is the probability of a CV event and $RF_1, RF_2, \dots$ are variables representing the (unscaled) risk factors described in Section \ref{sect:riskfactors}. The reported results are for models with a single ``main effect'' term for each predictor (i.e., no interactions or transformations); predictive performance did not markedly improve when second-order interaction terms were included (data not shown). Models were fitted using the \texttt{glm} function in R; IPC weights were incorporated using the \texttt{weights} argument. 
+
+\subsection{Bayesian networks}
 
 Figure \ref{figure:BayesNet} displays the structure of the Bayesian network that we used to construct our prediction models. The structure was determined by combining known relationships from the medical literature with input from our clinical colleagues. 
 
 \begin{figure*}[h]
 \centering
+[ NEED TO REDRAW THIS GRAPHIC FOR THE NEW SET OF VARIABLES WE USED. ]
 \includegraphics[width=0.75\textwidth]{bn_model.eps}
-\caption{The graphical model for our Bayesian network for CV risk prediction.  The figure includes the structure of risk factors, conditioned on the CV event status.  In particular, nodes represent input variables and edges represent conditional dependencies between the variables.  The reader should also assume that our outcome variable (CV Event) is connected to every node in the graph (omitted in the picture for parsimony).  Continuous and discrete variables are indicated by elliptical and rectangular nodes, respectively. Nodes in boxes with rounded corners indicate that they are modelled jointly. The nodes are grouped into subgraphs indicated by the dashed boxes. The grey edge between subgraphs indicates an edge from every node in the source subgraph to every node in the destination subgraph or node.  The full description of each of the features appears in Section~\ref{sec:data}. {\em Comorbidity}: Whether or not patient has pre-existing CVD or another comorbidity related to CVD; {\em Smoke}: current smoking status of patient; {\em BMI}: body mass index of patient; {\em SBP}: systolic blood pressure; {\em SBP Med}: Number of blood pressure medication classes currently prescribed to patient; {\em TRG}: triglycerides; {\em HDL}: high density lipoprotein; {\em LDL}: low density lipoprotein (note that TRG, HDL, and LDL are components of a patient's cholesterol measurement and HDL and TRG are modelled jointly); {\em LDL Med}: indicator for whether the patient is on LDL lowering medication.}
+\caption{The graphical model for our Bayesian network for CV risk prediction.  The figure includes the structure of risk factors, conditioned on the CV event status.  In particular, nodes represent input variables and edges represent conditional dependencies between the variables.  The reader should also assume that our outcome variable (CV Event) is connected to every node in the graph (omitted in the picture for parsimony).  Continuous and discrete variables are indicated by elliptical and rectangular nodes, respectively. Nodes in boxes with rounded corners indicate that they are modelled jointly. The nodes are grouped into subgraphs indicated by the dashed boxes. The grey edge between subgraphs indicates an edge from every node in the source subgraph to every node in the destination subgraph or node.  The full description of each of the features appears in Section~\ref{sec:data}. {\em Smoke}: current smoking status of patient; {\em BMI}: body mass index of patient; {\em SBP}: systolic blood pressure; {\em SBP Med}: Number of blood pressure medication classes currently prescribed to patient; {\em HDL}: high density lipoprotein; {\em TC}: total cholesterol (note that HDL and TC are modelled jointly).}
 \label{figure:BayesNet}
 \end{figure*}
 
-The models are compared based on their calibration (as described in Section \ref{sec:calibration}) and discrimination metrics, i.e., the C-index and cNRI (as described in Sections \ref{sec:cIndex} and \ref{sec:NRI}). To calculate the cNRI, we defined three risk strata based on clinically relevant cutoffs for the risk of experiencing a cardiovascular event within 5  years: 0-5\% (low risk), 5-10\% (moderate risk), and $>$ 10\% (high risk); risk predictions for an individual were considered discordant between two models if the predictions fell in different ranges. In addition to the calibration and the discrimination metrics, we also plot the difference between average risk and observed risk across different groups of predicted risk. That is, the training set is partitioned into bins with predicted CV risk between 0.0-2.5\%, 2.5-5.0\%, 5.0-7.5\%, 7.5-10.0\%, 10.0-15.0\%, 15.0-20.0\%, and $>$20/0\%.  These bins were based on clinically relevant risk categories suggested by out clinical collaborators (similar categories have been used in prior literature). The observed risk within each bin was computed using the Kaplan-Meier estimator. While the calibration statistic $K$ helps us compare the models using a single numeric metric, these plots provide us with more information regarding the calibration of a model for different risk ranges and the direction of deviation (over- or under-prediction) of the model from the observed risk. A perfectly calibrated model would be indicated by a horizontal line at $0$ line in these plots.
+Nodes were jointly modeled as described in Section \ref{sect:BN}, assuming a single multivariate Normal distribution for each jointly modeled set of continuous codes ($M=1$ in Equation \eqref{eq:JoinDistComps2}). Risk factors were scaled to zero mean and unit variance prior to fitting the model, which was custom-coded in Matlab. Code is available upon request.
 
-\begin{table}[ht]
-\centering
-\tbl{ Overview of the models considered in the analysis of 5-year cardiovascular event risk.\label{table:modelDisc}}{%
-\begin{tabular}{ll} \hline\noalign{\smallskip}
-\hspace{1em}{\bf{Model Name}}  & {\bf{Description}}  \\ \noalign{\smallskip}\hline\noalign{\smallskip}
-\hline
-\multicolumn{2}{l}{ML techniques treating censored observations as missing}                                                           \\
-\hspace{1em}{\bf{Discard-Logistic}}    & Logistic regression model on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$\\
-\hspace{1em}{\bf{Discard-Bayes}}     & Bayesian network model on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$                                 \\
-\hspace{1em}{\bf{Discard-Tree}}    & Classification tree on subjects with $\delta=1$ or $\delta=0$ and $V\geq 5$                                                                            \\
-\multicolumn{2}{l}{ML techniques treating censored observations as non-events}                                                           \\
-\hspace{1em}{\bf{Zero-Logistic}}    & Logistic regression model on event indicator $\delta$ \\
-\hspace{1em}{\bf{Zero-Bayes}}     & Bayesian network model with event indicator $\delta$                                 \\
-\hspace{1em}{\bf{Zero-Tree}}    & Classification tree using event indicator $\delta$                                                                            \\
-\multicolumn{2}{l}{ML techniques accounting for censoring}                                                                   \\
-\hspace{1em}{\bf{IPCW-Logistic}}    & Logistic regression with inverse probability of censoring weights                                          \\
-\hspace{1em}{\bf{IPCW-Bayes}}    & Bayes with inverse probability of censoring weights                                                 \\
-\hspace{1em}{\bf{IPCW-Tree}}    & Classification tree with inverse probability of censoring weights                                                 \\
-\multicolumn{2}{l}{Standard regression-based baseline approach for censored data}                                                      \\
-\hspace{1em}{\bf{COX}}         & Cox proportional hazards model                                                                        \\
-\end{tabular}}
-\end{table}
+\subsection{Classification trees}
+
+Classification trees were built using the \texttt{rpart} package in R, which implements the classification and regression trees described in \citet{Breiman1984}. Nodes are split based on the Gini loss criterion; the loss matrix was modified to give 10 times as much weight to incorrect non-event predictions among those experiencing events than the reverse, to induce additional splits and improve discrimination among the large fraction of the population with a relatively low (e.g., $< 5\%$) 5-year CV event risk. The minimum number of subjects in each terminal node was fixed at 200. Risk factors were not scaled prior to fitting the tree. In this illustrative example, no explict pruning was performed, though this would be advisable to optimize performance in practice. IPC weights were incorporated via the \texttt{weights} argument in \texttt{rpart}, which treats them as case weights. [ DO WE NEED TO NORMALIZE THE WEIGHTS TO SUM TO SOMETHING SPECIFIC? ]
 
 \section{Results} \label{sect:data-analysis2}
 
-The training dataset consists of 129,428 patients (75\% of the entire analysis population) drawn at random from the cohort. However, as noted above, some of the modeling approaches use only a subset of this training dataset. In particular, those models which exclude patients who did not experience a CV event and did not have 5-years of follow-up were trained on 48,300 subjects. Those models which exclude patients that did not have complete data on all the features were trained on 42,523 subjects. The performance of all models is evaluated based on the risk predictions of the remaining 43,143 patients not included in any training set. 
-
-The calibration and discrimination of the models evaluated on the test set are summarized in Table~\ref{table:resSummary}. 
+The full training dataset consists of XXXX patients (75\% of the entire analysis population) drawn at random from the cohort. XX\% were censored, so that \emph{Discard-} models were trained on XXXX subjects. The performance of all models is evaluated based on the risk predictions of the remaining XXX patients not included in any training set. The calibration and discrimination of the models evaluated on the test set are summarized in Table~\ref{table:resSummary}. 
 
 \begin{table}[ht]
 \centering
@@ -542,40 +543,23 @@ The calibration and discrimination of the models evaluated on the test set are s
 \begin{tabular}{lcccc} \hline\noalign{\smallskip}
                     &  Predicted event rate (\%) & Calibration statistic &   C-index   & cNRI (\%)       \\
                     \noalign{\smallskip}\hline\noalign{\smallskip}
-IPCW-Tree & 5.38 & 18.256 & 0.803 & -3.2 \\ 
   Zero-Tree & 4.15 & 129.947 & 0.792 &  \\ 
   Discard-Tree & 7.10 & 66.520 & 0.793 &  \\ 
+IPCW-Tree & 5.38 & 18.256 & 0.803 & -3.2 \\ 
   \hline
-  IPCW-Logistic & 5.34 & 17.869 & 0.809 & -2.8 \\ 
   Zero-Logistic & 4.14 & 115.398 & 0.809 &  \\ 
   Discard-Logistic & 7.08 & 49.570 & 0.809 &  \\ 
+  IPCW-Logistic & 5.34 & 17.869 & 0.809 & -2.8 \\ 
   \hline
-IPCW-Bayes            &        4.40                &    7.3 (0.5)            &  0.8845     &     5.50        \\
 Zero-Bayes             &        6.05                &  137.1 (2.6)            &  0.8843     &     9.40        \\
 Discard-Bayes             &        XXX                &  XXX            &  XXX     &     9.40        \\
-\hline
-  Cox & 5.64 & 4.869 & 0.810 &  \\ 
+IPCW-Bayes            &        4.40                &    7.3 (0.5)            &  0.8845     &     5.50        \\
 \end{tabular}}
 \end{table}
 
+[ THOUGHT: COMPUTE AN AVERAGE CONDITIONAL EVENT RATE FOR COMPARISON USING THE COX MODEL? ]
 
-\begin{figure}[ht]
-\centering
-%\includegraphics[width=0.90\textwidth]{CalibrationXXFF-Bayes-Cox-logistic.eps}
-\caption{Calibration of Bayesian network models both with and without IPCW, COX, and logistic regression model on the hold-out test set.}
-\label{figure:CalibNoCens}
-\end{figure}
-
-Although the overall improvement in calibration was not very large (Figure~\ref{figure:CalibNoCens}), the Bayesian network model allows for greater flexibility to model CV risk in certain subgroups. The higher discrimination of the Bayesian network models compared to the regression model can be attributed to the fact that these models can capture dependencies/correlations between risk factors (such as SBP and age) and can fit the nonlinearities in the data better than the regression models without higher order terms and interaction effects. For example, it is generally understood that the CV risk rises with increased blood pressure~\citep{stamler1993blood}. In most cases, our data supports this assertion. However for males who are already on a blood pressure medication, the relationship between the risk and blood pressure is not strictly increasing, as we see in Figure \ref{figure:sbpVsriskMeds}. The risk increases with decreasing SBP for SBP below 130 mmHg. This observation is interesting because physicians typically treat SBP down to 130 mmHg for people whose blood pressure is not controlled. Blood pressure being treated below 130 mmHg may indicate an underlying disease which is probably evident to a physician but is not captured by the risk factors that we have trained our model on. The underlying disease increases the risk for this group of patients.
-
-The proportional hazards model that we are using forces a linear relationship between the log hazard and the log of SBP and, thus, ends up modeling the risk well only for people whose blood pressure is relatively elevated. This is evident in Figure \ref{figure:sbpVsriskMeds} which shows that the Bayesian network and THIRD TECHNIQUE model better capture the observed SBP-CV risk relationship. In addition, the C-index of these models are significantly higher than that of the COX model for predictions in this subgroup.
-
-\begin{figure}[ht]
-\centering
-%\includegraphics[width=0.85\textwidth]{Nonlinear-Demo2.eps}
-\caption{Relationship between systolic blood pressure and CV risk for a subgroup of males between ages 40 and 55 who are on SBP medication. }
-\label{figure:sbpVsriskMeds}
-\end{figure}
+It is clear from Table~\ref{table:resSummary} that both the \emph{Discard-} and \emph{Zero-} variants are poorly calibrated, yielding biased estimates of both the overall and subgroup-specific risks. The amount of improvement in reclassification performance due to using IPCW is technique-dependent; C-index is better for \emph{IPCW-Tree} than \emph{Zero-Tree} and \emph{Discard-Tree}, but there is no apparent effect for logistic regression.
 
 \section{Discussion}
 
