@@ -309,7 +309,7 @@ One advantage of the Bayesian network approach is that clinical knowledge can be
 %The DAG structure used in our predictive models is shown in Figure \ref{figure:BayesNet} (see the caption of the figure for a brief description) and is explained in greater detail in Section \ref{sec:data}. The graphical model in Figure \ref{figure:BayesNet} contains both continuous-valued nodes (which are elliptical in the figure) and discrete-valued nodes (which are rectangular). The network is therefore a \emph{hybrid Bayesian network}~\citep{murphy1998inference}.
 
 %
-\subsubsection{IPC-weighted Baysian networks}
+\subsubsection{IPC-weighted Bayesian networks}
 
 When $E$ is observed on all subjects (i.e., there is no censoring), the maximum likelihood estimate of $P_E(e)$ is straightforward:
 \begin{equation}\label{eq:PofE}
@@ -438,7 +438,7 @@ The available longitudinal data on each patient-member were divided into: (i) a 
 \subsection{Risk factor ascertainment}
 \label{sect:riskfactors}
 
-Risk factors used in the prediction models included age, gender, systolic blood pressure (SBP), use of blood pressure medications, cholesterol markers (HDL and total cholesterol), body mass index (BMI), smoking status, and presence/absence of diabetes.  Summary statistics and brief descriptions for the risk factors are given in Table \ref{table:cohortProps}. Missing risk factor values were filled in using multiple imputation by chained equations \citep{REF} to create a dataset with no mising values
+Risk factors used in the prediction models included age, gender, systolic blood pressure (SBP), use of blood pressure medications, cholesterol markers (HDL and total cholesterol), body mass index (BMI), smoking status, and presence/absence of diabetes.  Summary statistics and brief descriptions for the risk factors are given in Table \ref{table:cohortProps}. Missing risk factor values were filled in using multiple imputation by chained equations \citep{REF} to create a dataset with no mising values; Table \ref{table:cohortProps} displays the percentage of missing values for each risk factor in the original (pre-imputation) data set. [NEED TO FILL IN MISSINGNESS \% FOR TOTAL CHOLESTEROL].
 
 \begin{center}
 \begin{table}
@@ -448,24 +448,23 @@ Risk factors used in the prediction models included age, gender, systolic blood 
 {\bf{Feature Name}}       &      or                   & {\bf{(in}} &  {\bf{Description}}                                                      \\
                           & {\bf{N (\%)}}             &     {\bf{original data)}}              &                                                                          \\ \noalign{\smallskip}\hline\noalign{\smallskip} \hline
 {\bf{Gender}}             &                           &                   &                                                                          \\
-\ \ \ Female              & 102,754 (60.9)            &  0                &                                                                          \\
-\ \ \ Male                &  66,068 (39.1)            &  0                &                                                                          \\
-{\bf{Age }}(Years)        & 43      (31  -  56)       &  0                &  Age  at the end of the baseline period                                  \\
-{\bf{SBP }}(mm Hg)        & 118     (110 - 127)       &  0                &  Mean systolic blood pressure  during baseline period                    \\
-{\bf{BMI }}(kg/m$^2$)     & 26.7    (23.5  -  31.4)   &  14               & Body mass index                                                          \\
-{\bf{HDL }}(mg/dL)        & 47      (39  -  56)       &  55               &  Final high density  lipoprotein during baseline period                  \\
+\ \ \ Female              & 51,530 (59.0)            &  0                &                                                                          \\
+\ \ \ Male                &  35,833 (41.0)            &  0                &                                                                          \\
+{\bf{Age }}(Years)        & 52      (46  -  60)       &  0                &  Age  at the end of the baseline period                                  \\
+{\bf{SBP }}(mm Hg)        & 123     (115 - 133)       &  0                &  Average systolic blood pressure  during baseline period                    \\
+{\bf{BMI }}(kg/m$^2$)     & 28.0    (24.7  -  32.3)   &  14               & Body mass index                                                          \\
+{\bf{HDL }}(mg/dL)        & 48      (40  -  59)       &  55               &  Final high density lipoprotein during baseline period                  \\
+{\bf{Total cholesterol }}(mg/dL)        & 196      (172  -  222)       &  XXX               &  Final total cholesterol during baseline period                  \\
 {\bf{Smoking}}            &                           &                   & Smoking status in EMR                                                    \\
-\ \ \ Never or Passive    & 124,580 (73.8)            &   0               &                                                                          \\
-\ \ \ Quit                & 16,655  (9.9)             &   0               &                                                                          \\
-\ \ \ Current             & 27,587  (16.3)            &   0               &                                                                          \\
+\ \ \ Never or Passive    & 64,335 (73.6)            &   0               &                                                                          \\
+\ \ \ Quit                & 9,829  (11.3)             &   0               &                                                                          \\
+\ \ \ Current             & 13,199  (15.1)            &   0               &                                                                          \\
 {\bf{SBP Meds}}           &                           &                   &  Number of SBP medication classes filled during baseline period          \\
-\ \ \ 0                   & 113,478 (67.2)            &   0               &                                                                          \\
-\ \ \ 1                   & 20,593 (12.2)             &   0               &                                                                          \\
-\ \ \ 2                   & 14,187 ( 8.4)             &   0               &                                                                          \\
-\ \ \ 3+                  & 20,564 (12.2)             &   0               &                                                                          \\
+\ \ \ 0                   & 49,165 (56.3)            &   0               &                                                                          \\
+\ \ \ 1+                & 38,198 (43.7)             &   0               &                                                                          \\
 {\bf{Diabetes}}            &                           &                   & Subject has a current diagnosis of diabetes                                                    \\
-\ \ \ Yes    & 124,580 (73.8)            &   0               &                                                                          \\
-\ \ \ No               & 16,655  (9.9)             &   0               &                                                                          \\
+\ \ \ No               & 80,921  (92.6)             &   0               &                                                                          \\
+\ \ \ Yes    & 6,442 (7.4)            &   0               &                                                                          \\
 \noalign{\smallskip}
 \hline
 \end{tabular}}
@@ -491,7 +490,7 @@ Risk factors used in the prediction models included age, gender, systolic blood 
 
 Cardiovascular events ($\delta = 1$) are defined as the first recorded stroke, myocardial infarction (MI), or procedure proximal to stroke or MI (e.g., coronary artery bypass surgery, stent for either the coronary arteries or carotid artery) after the baseline period, prior to 5 years of follow-up. This information is obtained from diagnosis codes recorded by physicians or inferred from procedures (such as bypass surgery or stent placement) performed on an individual. In addition to using procedure and diagnosis codes to infer if a CV event occurred, we consider a patient to have experienced a CV event if the cause of death listed on the death certificate included MI or stroke. Subjects who do not experience an event within 5 years of the baseline period (including both those with $>5$ years follow-up who may experience an event after 5 years, and those with $< 5$ years of follow-up) are recorded as censored ($\delta =0$).
 
-The total number of first CV events recorded within the follow-up period is XXXX; the Kaplan-Meier 5-year event rate for the entire analysis cohort is XXX\%.
+The total number of first CV events recorded within the follow-up period is 3,653; the 5-year event rate for the entire analysis cohort calculated via Kaplan-Meier is 6.4\%.
 
 %%%
 \section{Models and results} \label{sect:data-analysis}
@@ -533,9 +532,10 @@ Nodes were jointly modeled as described in Section \ref{sect:BN}, assuming a sin
 
 Classification trees were built using the \texttt{rpart} package in R, which implements the classification and regression trees described in \citet{Breiman1984}. Nodes are split based on the Gini loss criterion; the loss matrix was modified to give 10 times as much weight to incorrect non-event predictions among those experiencing events than the reverse, to induce additional splits and improve discrimination among the large fraction of the population with a relatively low (e.g., $< 5\%$) 5-year CV event risk. The minimum number of subjects in each terminal node was fixed at 200. Risk factors were not scaled prior to fitting the tree. In this illustrative example, no explict pruning was performed, though this would be advisable to optimize performance in practice. IPC weights were incorporated via the \texttt{weights} argument in \texttt{rpart}, which treats them as case weights. [ DO WE NEED TO NORMALIZE THE WEIGHTS TO SUM TO SOMETHING SPECIFIC? ]
 
+%%%%
 \section{Results} \label{sect:data-analysis2}
 
-The full training dataset consists of XXXX patients (75\% of the entire analysis population) drawn at random from the cohort. XX\% were censored, so that \emph{Discard-} models were trained on XXXX subjects. The performance of all models is evaluated based on the risk predictions of the remaining XXX patients not included in any training set. The calibration and discrimination of the models evaluated on the test set are summarized in Table~\ref{table:resSummary}. 
+The full training dataset consists of 65,522 patients (75\% of the entire analysis population) drawn at random from the cohort. 52\% were censored prior to five years, so that \emph{Discard-} models were trained on 31,345 subjects. The performance of all models is evaluated based on the risk predictions of the remaining 21,841 patients not included in any training set. The calibration and discrimination of the models evaluated on the test set are summarized in Table~\ref{table:resSummary}. 
 
 \begin{table}[ht]
 \centering
