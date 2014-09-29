@@ -12,6 +12,9 @@ frac.train <- 0.75
 train.set <- sample(1:nrow(HP),frac.train*nrow(HP),replace=FALSE)
 test.set <- setdiff(1:nrow(HP),train.set)
 
+T.all <- HP$DaysToEvent_Fram
+C.all <- HP$CVDEvent_Fram
+
 HP.train <- data.frame(HP[train.set,])
 HP.test <- data.frame(HP[test.set,])
 
@@ -39,3 +42,10 @@ table(HP$SBP_Meds)
 table(HP$SBP_Meds)/nrow(HP)
 table(HP$Has_Diab)
 table(HP$Has_Diab)/nrow(HP)
+
+### Total number of events
+sum(C.all==1&T.all<=(5*365))
+
+## Overall KM event rate
+sf <- survfit(Surv(T.all,C.all)~1)
+print(1-sf$surv[max(which(sf$time<=(5*365)))])
