@@ -111,7 +111,8 @@ pGAM.zero <- GAM_functions(intx.varnms, "ZERO", HP.train, HP.test)
 pGAM.disc <- GAM_functions(intx.varnms, "DISCARD", HP.train, HP.test)
 
 #  Bagged Generalized Additive Models
-pGAM.bag <- GAM_bag_functions(varnms_fixed, varnms_smooth, 10, "IPCW", HP.train, 
+set.seed(1101985)
+pGAM.bag <- GAM_bag_functions(varnms_fixed, varnms_smooth, 25, "IPCW", HP.train, 
 	HP.test)
 
 #  Bagged MARS Models
