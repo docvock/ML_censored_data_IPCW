@@ -157,6 +157,7 @@ calib.stat(pMARS, risk.cutpts, HP.test)
 calib.stat(pknn, risk.cutpts, HP.test)
 
 # Evaluate the C-index
+
 Cindex(pRP, HP.test)
 Cindex(pRP.zero, HP.test)
 Cindex(pRP.disc, HP.test)
