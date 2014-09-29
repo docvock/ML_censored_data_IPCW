@@ -54,3 +54,4 @@ Temporary Items
 *.out
 *.gz
 v2-acmsmall-sample.tex
+.Rproj.user
