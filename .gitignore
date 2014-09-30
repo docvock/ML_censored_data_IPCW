@@ -59,3 +59,5 @@ code/IPCW-rpart-test.R
 code/IPCW-working-stub.R
 *.Rproj
 code/code.Rproj
+code/knit-test.Rnw
+code/knit-test.tex
