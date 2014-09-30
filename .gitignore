@@ -57,3 +57,5 @@ v2-acmsmall-sample.tex
 code/.Rhistory
 code/IPCW-rpart-test.R
 code/IPCW-working-stub.R
+*.Rproj
+code/code.Rproj
