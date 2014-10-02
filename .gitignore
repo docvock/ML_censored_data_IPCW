@@ -61,3 +61,4 @@ code/IPCW-working-stub.R
 code/code.Rproj
 code/knit-test.Rnw
 code/knit-test.tex
+*.dvi
