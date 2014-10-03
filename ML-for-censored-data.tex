@@ -202,11 +202,13 @@ where $d^*_{j}$ is the number of subjects who were censored at time $V_{j}$ and 
 Step 3 is left purposefully vague, as the manner in which IPC weights are incorporated will vary according to the machine learning technique used.  Section \ref{sect:examples} illustrates how a variety of machine learning algorithms can be adapted for censoring using IPCW.
 
 %%%
-\section{Risk prediction evaluation metrics for censored data} \label{sce:performanceMetrics}
+\section{Risk prediction evaluation metrics for censored data} 
+\label{sec:performanceMetrics}
 
 A key feature of many machine learning techniques for risk prediction is that they can be improved by adjusting parameters to optimize a performance metric, e.g., the misclassification rate. For the same reasons described above that failing to account for censoring yields biased parameter estimates, the usual performance metrics applied to risk prediction problems can be misleading when outcomes are subject to censoring. Here, we present modifications of standard calibration (goodness-of-fit test statistic) and discrimination (concordance index and net reclassification improvement) metrics which properly account for censored data and allow model performance to be assessed more accurately. In Section \ref{sect:examples}, we describe how these modified metrics can be used to select tuning parameter values for IPC-weighted versions of machine learning techniques.
 
-\subsection{Calibration}\label{sec:calibration}
+\subsection{Calibration}
+\label{sec:calibration}
 
 Let $\hat \pi_i$ be the risk predictions (i.e., estimates of the conditional class probabilities $P(E_i=1|\mathbf{X_i})$) for subjects in the test set. In statndard risk prediction settings, calibration is commonly assessed by ranking the predicted risks $\hat \pi_i$, partitioning the ranked predictions into bins $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_m$ (e.g., by decile or clinically relevant cut points), and comparing the average predicted risk in each bin to an empirical estimate of the risk within that bin. When $E_i$ is known for all subjects, the empirical risk estimate for bin $\mathcal{B_k}$ is simply given by $\sum_{i \in \mathcal{B_k}} E_i / |\mathcal{B}_k|$, where $|\mathcal{B}_k|$ is the number of instances in bin $\mathcal{B}_k$. However, when the outcome $E_i$ is unknown for some subjects within a bin, an alternative estimator of the empirical risk is needed. One option estimates the probability of experiencing an event prior to time $\tau$ within each bin using the Kaplan-Meier estimator, yielding a calibration statistic of the form:
 \begin{equation}
@@ -253,90 +255,79 @@ where $E_{M_1}^{*,\uparrow}, E_{M_1}^{*,\downarrow}, E_{M_2}^{*,\uparrow}, E_{M_
 
 Logistic regression is a simple and popular technique for modeling binary or binomial data. The goal is a find a linear combination of features to approximate the log-odds, i.e.,
 \begin{equation}
-\log \left( \frac{ p_i(\mathbf{x}) }{ 1 - p_i(\mathbf{x}) } \right) = \beta_0 + \sum_{j=1}^p \beta_j x_j
+\log \left( \frac{ \pi_i(\mathbf{x}) }{ 1 - \pi_i(\mathbf{x}) } \right) = \beta_0 + \sum_{j=1}^p \beta_j x_j
 \end{equation}
-where $p_i(\mathbf{x}) = P(E_i=1 | \mathbf{X_i} = \mathbf{x})$ for the vector of features $\mathbf{X_i}$. The features may take any form, but in risk prediction the ``base'' model often includes the so-called main effects of each risk factor, i.e., the value of the risk factor itself. Given features $\mathbf{X}$ and a corresponding vector of event indicators $\mathbf{E}$, the logistic regression log-likelihood takes the form
+where $\pi_i(\mathbf{x}) = P(E_i=1 | \mathbf{X_i} = \mathbf{x})$ for the vector of features $\mathbf{X_i}$. The features may take any form, but in risk prediction the ``base'' model often includes the so-called main effects of each risk factor, i.e., the value of the risk factor itself. Given features $\mathbf{X}$ and a corresponding vector of event indicators $\mathbf{E}$, the logistic regression log-likelihood takes the form
+
 \begin{equation}
-\ell(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \left[ E_i \log p_i(\mathbf{x}) + (1-E_i) \log( 1 - p_i(\mathbf{x}) ) \right],
+\ell(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \left[ E_i \log \pi_i(\mathbf{x}) + (1-E_i) \log( 1 - \pi_i(\mathbf{x}) ) \right],
 \label{eq:logreglike}
 \end{equation}
-where $n$ is the number of observation in the training set, and this log-likelihood can be maximized using a number of techniques, the most common of which is iteratively reweighted least squares [REF]. The solution of $\partial \ell / \partial \bbeta = \mathbf{0}$ is the unique maximum likelihood estimator of $\bbeta$.
 
-Logistic regression using the ``base'' model with only the main (linear) effects of various risk factors is relatively unlikely to produce a well-fitting model because the log odds of experiencing the event is unlikely to be linearly related to the features.  Enlarging the feature set by considering a basis expansion of the continuous features may improve prediction. The most intuitive expansion is the polynomial expansion where higher order moments of the $j^{th}$ feature $X_{ij}$, e.g. $X_{ij}^2, X_{ij}^3$ are included in the model. However, this particular expansion can be unstable so typically restriced cubic smoothing splines, B-splines, or thin-plate regression splines are frequently used in practice. Because expanding the feature space involves estimating many more parameters than just the including the linear risk factors, we typically penalize the ``wiggliness'' of the  linear predictor. If $\mbf{z}_j$ is the basis expansion of the $j^{th}$ feature and $\mbf{\beta}_j$ is vector of dimension equal to the dimension of $\mbf{z}_j$, then the generalized additive logistic model assumes that
+where $n$ is the number of observations in the training set, and this log-likelihood can be maximized using a variety of techniques, the most common of which is iteratively reweighted least squares \citep{Agresti2002categorical}. The solution of $\partial \ell / \partial \bbeta = \mathbf{0}$ is the unique maximum likelihood estimator of $\bbeta$.
+
+Logistic regression using the ``base'' model with only the main (linear) effects of various risk factors is unlikely to produce a well-fitting model when the log odds of experiencing the event has a non-linear relationship to the features.  Enlarging the feature set by considering a basis expansion of the continuous features may improve prediction. If $\mbf{z}_j$ is the basis expansion of the $j^{th}$ feature and $\mbf{\beta}_j$ is vector of the same dimension as $\mbf{z}_j$, then the generalized additive logistic model assumes that
 
 \begin{equation}
-\log \left( \frac{ p_i(\mathbf{x}) }{ 1 - p_i(\mathbf{x}) } \right) = \beta_0 + \sum_{j=1}^p {\mbf{\beta}}_j^T \mbf{z}_j,
+\log \left( \frac{ \pi_i(\mathbf{x}) }{ 1 - \pi_i(\mathbf{x}) } \right) = \beta_0 + \sum_{j=1}^p {\mbf{\beta}}_j^T \mbf{z}_j,
 \end{equation}
 
-and the parameters are estimated by maximizing the penalized log likelihood. The tuning parameters $\lambda_j$ are typically selected to minimize the unbiased risk estimator (UBRE) which in the case of logistic regression is proportional to the Akaike Information Criterion \citep{Akaike1974} given by $AIC = 2 k - 2 \ell$, where $\ell$ is the (log-)likelihood given in \eqref{eq:logreglike}.
-
+The most intuitive expansion is the polynomial expansion where higher order moments of the $j^{th}$ feature $X_{ij}$, e.g. $X_{ij}^2, X_{ij}^3$ are included in the model. However, this particular expansion can be unstable so restricted cubic smoothing splines, B-splines, or thin-plate regression splines are frequently used in practice. Since expanding the feature space involves estimating many more coefficients parameters, it is common to penalize the smoothness of the  linear predictor $\sum_{j=1}^p \beta_j^T \mathbf{z}_j$, and maximize the resulting penalized log likelihood
 \begin{equation}
-\ell(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \left[ E_i \log p_i(\mathbf{x}) + (1-E_i) \log( 1 - p_i(\mathbf{x}) ) \right] -  \sum_{j=1}^p \lambda_j \mbf{\beta_j}^T S_j \mbf{\beta_j},
+\ell^P(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \left[ E_i \log \pi_i(\mathbf{x}) + (1-E_i) \log( 1 - \pi_i(\mathbf{x}) ) \right] -  \sum_{j=1}^p \lambda_j \mbf{\beta_j}^T S_j \mbf{\beta_j},
 \label{eq:logreglike_gam}
 \end{equation}
-where $\mbf{\beta} = (\beta_0, \mbf{\beta}_1^T, \ldots, \mbf{\beta}_p^T)^T$, $S$ is an appropriately chosen smoothing matrix, and $\lambda_j$ is a tuning parameter. The tuning parameter is
+where $\mbf{\beta} = (\beta_0, \mbf{\beta}_1^T, \ldots, \mbf{\beta}_p^T)^T$, $S$ is an appropriately chosen smoothing matrix, and $\lambda_j$'s are tuning parameters which control the degree of penalization/smoothness. The $\lambda_j$ are typically selected to minimize the unbiased risk estimator (UBRE), which in the case of logistic regression is proportional to the Akaike Information Criterion \citep{Akaike1974} given by $AIC = 2 k - 2 \ell$, where $\ell$ is the (log-)likelihood given in \eqref{eq:logreglike}.
 
 \subsubsection{IPC-weighted logistic regression}
 
 IPC-weighted logistic regression maximizes the \emph{weighted} log-likelihood
 \begin{equation}
-\ell^\omega(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \omega_i \left[  E_i \log p_i(\mathbf{x}) + (1- E_i) \log( 1 - p_i(\mathbf{x}) ) \right]
+\ell^\omega(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \omega_i \left[  E_i \log \pi_i(\mathbf{x}) + (1- E_i) \log( 1 - \pi_i(\mathbf{x}) ) \right]
 \label{eq:logreglike-weighted}
 \end{equation}
 
-The weights are easily incorporated in standard statistical software. For example, in MATLAB IPC weights can be used in the \texttt{weights} argument of the \texttt{glmfit} function. In R \citep{}, the \texttt{weights} argument of the \texttt{glm} command can be used, or IPC weights can be specified as sampling weights in \texttt{svyglm} from the \texttt{survey} package \citep{}. The former approach in R will generate a warning as the \texttt{weights} argument is designed to specify the number of binomial trials corresponding to each row of the dataset, but the resulting likelihood differs from \eqref{eq:logreglike-weighted} by only a constant factor and hence estimation/prediction is identical to the \texttt{svyglm} approach which is explicitly designed to handle weights of this type.
+The weights are easily incorporated in standard statistical software. For example, in MATLAB, IPC weights can be used in the \texttt{weights} argument of the \texttt{glmfit} function. In R \citep{RProject}, the \texttt{weights} argument of the \texttt{glm} command can be used, or IPC weights can be specified as sampling weights in \texttt{svyglm} from the \texttt{survey} package \citep{Lumley2004}. The former approach in R will generate a warning as the \texttt{weights} argument is designed to specify the number of binomial trials corresponding to each row of the dataset, but the resulting likelihood differs from \eqref{eq:logreglike-weighted} by only a constant factor and hence estimation/prediction is identical to the \texttt{svyglm} approach which is explicitly designed to handle weights of this type. \JWcomment{Unnecessary overkill?}
 
-Similarly, the IPC-weighted generalized additive logistic regression maximizes the following weighted penalized log-likelihood 
-
+Similarly, the IPC-weighted generalized additive logistic regression maximizes the following weighted penalized log-likelihood:
 \begin{equation}
-\ell^\omega(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \omega_i \left[  E_i \log p_i(\mathbf{x}) + (1- E_i) \log( 1 - p_i(\mathbf{x}) ) \right] -  \sum_{j=1}^p \lambda_j \mbf{\beta_j}^T S_j \mbf{\beta_j}.
+\ell^{P,\omega}(\bbeta; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \omega_i \left[  E_i \log \pi_i(\mathbf{x}) + (1- E_i) \log( 1 - \pi_i(\mathbf{x}) ) \right] -  \sum_{j=1}^p \lambda_j \mbf{\beta_j}^T S_j \mbf{\beta_j}.
 \label{eq:logreglike-weighted_gam}
 \end{equation}
 
-As with standard logistic regression, standard statistical software which fits generalized additive models typically easily incorporates observation weights. For example, in R, the \texttt{weights} argument of the \texttt{gam} function in the \texttt{mgcv} package can be used. We note that the scores used to select the tuning parameters in the generalized additive model are also easily modified using IPC-weights to account right censoring. In particular, the weighted AIC becomes $AIC^\omega = 2k - 2 \ell^\omega$, with $\ell^\omega$ given in \eqref{eq:logreglike-weighted}.
+Most software programs which fit generalized additive models also easily incorporate observation weights. For example, in R, the \texttt{weights} argument of the \texttt{gam} function in the \texttt{mgcv} package \citep{Wood2006generalized} can be used. The scores used to select the tuning parameters in the generalized additive model are also easily modified using IPC-weights to account right censoring. In particular, the weighted AIC becomes $AIC^\omega = 2k - 2 \ell^\omega$, with $\ell^\omega$ given in \eqref{eq:logreglike-weighted}.
 
-As an alternative to estimating the parameters in the generalized additive logistic model using penalized maximum likelihood, we note \citet{Friedman2000a} showed that $F(\mathbf{x}) = \log \left( \frac{ p(\mathbf{x}) }{ 1 - p(\mathbf{x}) } \right)$ minimizes $E(e^{-y F(\mathbf{x})})$ and hence it is possible to derive boosting procedures (e.g., LogitBoost) which construct flexible additive predictive models by iteratively maximizing $\ell$. These approaches are easily generalized by maximizing $\ell^\omega$ at each step instead of $\ell$. Note that the IPC weights applied to the likelihood are distinct from the iteratively updated ``case weights'' used in the boosting algorithm to increase the influence of poorly-classified instances, and in practice the weights used in the algorithm will be a product of the two types of weights.
+As an alternative to estimating the parameters in the generalized additive logistic model using penalized maximum likelihood, \citet{Friedman2000} derived boosting procedures to construct flexible additive predictive models by iteratively maximizing $\ell$. These approaches are easily generalized by maximizing $\ell^\omega$ at each step instead of $\ell$. Note that the IPC weights applied to the likelihood are distinct from the iteratively updated ``case weights'' used in boosting algorithms to increase the influence of poorly-classified instances, and in practice the weights used in the algorithm will be a product of the two types of weights.
 
 %%%
 \subsection{Bayesian networks}
 \label{sect:BN}
 
-Bayesian networks are well-suited to handle the intricacies of risk prediction from complex health data. Compared to support vector machines or neural networks, Bayesian networks have a clear edge in interpretability, which is important to the end-users of these prediction models in the healthcare domain (e.g., physicians and clinical researchers). Because of their interpretability and their ability to aid in reasoning with uncertainty, Bayesian networks have been used extensively in biomedical applications (see \cite{Lucas_2004} for a review). In particular, they have been: used to aid in understanding of disease prognosis and clinical prediction \citep{Andreassen_1999,Verduijn_2007,Lipsky_2005,Sarkar_2013,Frances_2013,Lappenschaar_2013}; used to guide the selection of the appropriate treatment \citep{Lucas_2000,Kazmierska_2008,Smith_2009,Yet_2013,Velika_2014}; and implemented as part of clinical decision support systems \citep{Lucas_1998,Sesen_2013}.
+Because of their interpretability and their ability to aid in reasoning with uncertainty, Bayesian networks have been used extensively in biomedical applications (see \cite{Lucas_2004} for a review). In particular, they have been used to: aid in understanding of disease prognosis and clinical prediction \citep{Andreassen_1999,Verduijn_2007,Lipsky_2005,Sarkar_2013,Frances_2013,Lappenschaar_2013}; guide the selection of the appropriate treatment \citep{Lucas_2000,Kazmierska_2008,Smith_2009,Yet_2013,Velika_2014}; improve clinical decision support systems \citep{Lucas_1998,Sesen_2013}.
 
-%Let the features recorded on a patient be represented by a $p$-dimensional vector $\mathbf{X} = (X_1 \cdots X_p)$ where $X_i$ is the $i^\mathrm{th}$ risk factor (some of the factors could be missing for certain patients). Let $E=1$ indicate that an event (e.g., a CV event) occurred for a given patient within $\tau$ years of the beginning of the follow-up period, and $E=0$ indicate the absence of such an event in that time frame. Though our ultimate goal is to handle the case where $E$ is unknown for some patients, for now we assume that at least $\tau$ years of follow-up is available on each patient so that $E$ is fully observed.
-
-% NOT NEEDED NOW with Notation Section: Let $E=1$ indicate that an event (e.g., a CV event) occurred for a given patient within $\tau$ years of the beginning of the follow-up period, and $E=0$ indicate the absence of such an event in that time frame. The target of estimation is $P_{E|\mathbf{X}}(e|\mathbf{x})$, the conditional probability that $E=e$ given the features $\mathbf{x}$ of a particular patient.
-
-Using Bayes theorem, one can rewrite the conditional probability of an event, $P_{E|\mathbf{X}}(e|\mathbf{x})$,  as
+Using Bayes theorem, one can rewrite the conditional probability of an event, $\pi(\mathbf{x})$,  as
 
 \begin{equation} \label{eq:bayesBasic}
-P_{E|\mathbf{X}}(e=1|\mathbf{x}) = \frac{P_{\mathbf{X}|E}(\mathbf{x}|e=1)P_E(e=1)}{\sum_{e\in\{0,1\}} P_{\mathbf{X}|E}(\mathbf{x}|e)P_E(e)},
+\pi(\mathbf{x}) = \frac{P_{\mathbf{X}|E}(\mathbf{x}|e=1)P_E(e=1)}{\sum_{e\in\{0,1\}} P_{\mathbf{X}|E}(\mathbf{x}|e)P_E(e)},
 \end{equation}
-%so that the focus is shifted to estimation of the conditional density/probability $P_{\mathbf{X}|E}(\mathbf{x}|e)$ and the probability $P_E(e)$ for $e = 0,1$. To maintain notational brevity, we use $P_Y(y)$ to denote either the probability that the random variable $Y$ equals $y$ if $Y$ is discrete or the probability density of $Y$ evaluated at $y$ if $Y$ is a continuous random variable. Similarly, $P_{Y|Z}(y|z)$ is the conditional probability/density of the random variable $Y$ evaluated at $y$ given $Z=z$. In general, the dimensionality of the feature space $p$ may be too large to make joint modeling of $P_{\mathbf{X}|E}(\mathbf{x} | e=1)$ feasible.
-
-Unlike the regression approaches described above which directly estimate $P_{E|\mathbf{X}}(e|\mathbf{x})$, focus is now shifted to estimation of the conditional density/probability $P_{\mathbf{X}|E}(\mathbf{x}|e)$ and the probability $P_E(e)$ for $e = 0,1$ To simplify the task of modeling $P_{\mathbf{X}|E}$, one can represent the joint distributions of $\mathbf{X}|E=e$ using a directed acyclic graph (DAG), i.e., a Bayesian network. The DAG encodes conditional independence relationships between variables, allowing the joint distribution to be decomposed into a product of individual terms conditioned on their parent variables \citep{stuart2003artificial}:
+Unlike the regression approaches described above which directly estimate $\pi(\mathbf{x})$, focus is now shifted to estimation of the conditional density/probability $P_{\mathbf{X}|E}(\mathbf{x}|e)$ and the probability $P_E(e)$ for $e = 0,1$. To simplify the task of modeling $P_{\mathbf{X}|E}$, one can represent the joint distributions of $\mathbf{X}|E=e$ using a directed acyclic graph (DAG), i.e., a Bayesian network. One advantage of the Bayesian network approach is that clinical knowledge and data can be combined to suggest and refine DAG structures. The DAG encodes conditional independence relationships between variables, allowing the joint distribution to be decomposed into a product of individual terms conditioned on their parent variables \citep{stuart2003artificial}:
 
 \begin{equation} \label{eq:DAGfactorsCond}
 P_{\mbf{X}|E}(\mbf{x}|e) = \prod_{i=1}^p P_{X_i|\mrm{Pa}(X_i),E}\{x_i|\mrm{Pa}(x_i),e\}
 \end{equation}
-where $\mrm{Pa}(X_i)$ are the parents of $X_i$.
-
-One advantage of the Bayesian network approach is that clinical knowledge can be used to suggest and refine DAG structures. While methods exist to infer the DAG structure from data, in our application we used parsimonious DAGs based on information from the medical literature as well as clinical judgment from the medical experts who collaborated on this research project.
-%The DAG structure used in our predictive models is shown in Figure \ref{figure:BayesNet} (see the caption of the figure for a brief description) and is explained in greater detail in Section \ref{sec:data}. The graphical model in Figure \ref{figure:BayesNet} contains both continuous-valued nodes (which are elliptical in the figure) and discrete-valued nodes (which are rectangular). The network is therefore a \emph{hybrid Bayesian network}~\citep{murphy1998inference}.
-%
-
-When $E$ is observed on all subjects (i.e., there is no censoring), the maximum likelihood estimate of $P_E(e)$ is straightforward:
+where $\mrm{Pa}(X_i)$ are the parents of $X_i$. When $E$ is observed on all subjects (i.e., there is no censoring), the maximum likelihood estimate of $P_E(e)$ is straightforward:
 \begin{equation}\label{eq:PofE}
 {\hat{P}}_E(e) = \frac{1}{n} \sum_{i=1}^n \indicatorBig{E_i=e}.
 \end{equation}
-%where $E_i$ is the CV event status for the $j^{th}$ person, $n$ is the number of people in the training set, and $\indicatorBig{\cdot}$ is the indicator function.
 
-Several approaches have been proposed to modeling the terms $P_{X_i|\mrm{Pa}(X_i),E}\{x_i|\mrm{Pa}(x_i),e\}$. For example, a common strategy is to construct a regression model to link the values of continuous parent nodes of $X_i$ to the mean of $X_i$.  In applying Bayesian networks to our example data in Section \ref{sec:data}, we take a slightly different approach which is fully detailed in \citet{Bandyopadhyay2014}. For each feature $X_j$, we partition each group $\mbf{G}_j = \{X_j,\mathrm{Pa}(X_j)\}$ into $(\mathbf{Y}_j, \mathbf{Z}_j)$, where $\mbf{Y}_j$ represents the continuous risk factors and $\mbf{Z}_j$ the discrete risk factors. The joint distribution of $\mbf{G}_j$ given $E$ is $P_{\mbf{G}_j|E}(\mbf{g}_j|e)=P_{\mbf{Y}_j|\mbf{Z}_j,E}(\mbf{y}_j|\mbf{z}_j,e)\times P_{\mbf{Z}_j|E}(\mbf{z}_j|e)$, where $P_{\mbf{Z}_j|E}(\mbf{z}_j|e)$ is a discrete probability distribution. This distribution can be estimated by computing the proportion of observations in each unique state of $\mbf{Z}_j$ separately for $E=0$ or $E=1$, i.e.,
+Several approaches have been proposed to modeling the terms $P_{X_i|\mrm{Pa}(X_i),E}\{x_i|\mrm{Pa}(x_i),e\}$. For example, a common strategy is to construct a regression model to link the values of continuous parent nodes of $X_i$ to the mean of $X_i$.  In applying Bayesian networks to our example data in Section \ref{sec:data}, we take a slightly different approach which is fully detailed in \citet{Bandyopadhyay2014}. For each feature $X_j$, we partition a group $\mbf{G}_j \equiv \{X_j,\mathrm{Pa}(X_j)\}$ into $(\mathbf{Y}_j, \mathbf{Z}_j)$, where $\mbf{Y}_j$ represents the continuous risk factors and $\mbf{Z}_j$ the discrete risk factors. The joint distribution of $\mbf{G}_j$ given $E$ is $P_{\mbf{G}_j|E}(\mbf{g}_j|e)=P_{\mbf{Y}_j|\mbf{Z}_j,E}(\mbf{y}_j|\mbf{z}_j,e)\times P_{\mbf{Z}_j|E}(\mbf{z}_j|e)$, where $P_{\mbf{Z}_j|E}(\mbf{z}_j|e)$ is a discrete probability distribution. This distribution can be estimated by computing the proportion of observations in each unique state of $\mbf{Z}_j$ separately for $E=0$ or $E=1$, i.e.,
+
 \begin{equation} \label{PofZ}
 {\hat{P}}_{\mbf{Z}_j|E}(\mbf{z}_j|e) = \frac{{\hat{P}}_{\mbf{Z}_j,E}(\mbf{z}_j,e)}{ {\hat{P}}_E(e) } =
 \frac{\frac{1}{n}\sum_{i=1}^n \indicatorBig {\mbf{Z}_{ij}=\mbf{z}_i, E_j=e}}{\frac{1}{n} \sum_{i=1}^n \indicatorBig { E_i=e}},
 \end{equation}
-where again $i$ indexes the subject. For the continuous components,  we model the density of $\mbf{Y}_i$ given $\mbf{Z}_i$ and $E$ as a mixture of $M$ multivariate normal densities  conditional on the levels of $\mathbf{Z}_j$:
+
+where again $i$ indexes the subject. For the continuous components, one can model the density of $\mbf{Y}_i$ given $\mbf{Z}_i$ and $E$ as a mixture of $M$ multivariate normal densities  conditional on the levels of $\mathbf{Z}_j$:
 \begin{equation}\label{eq:JoinDistComps2}
 P_{\mbf{Y}_j|\mbf{Z}_j,E}(\mbf{y}_j|\mbf{z}_j,e)=\sum_{m=1}^M \rho_{j,m,z_j,e} \phi_{C_{\mbf{Y_j}}} \left\{ \Sigma^{-1/2}_{j,m,z_j,e} ( y_j - \mu_{j,m,z_j,e}) \right \},
 \end{equation}
@@ -352,18 +343,20 @@ where $p_{i,m}^{(\nu)} = \mathrm{E}_{\theta^{(\nu)}} (I_{j,m,z_j,e} |\mbf{Y}_{ij
 
 \subsubsection{IPC-weighted Bayesian networks}
 
+\JWcomment{Is it OK that this is a list/algorithm but other example applications have a more ``narrative'' flavor?}
 To fit the Bayesian network using IPCW, we make the following modifications:
 \begin{enumerate}
 \item Estimate IPC weights $\omega_j$ as described in Section \ref{sect:IPCWeights}.
 \item Obtain the IPCW maximum likelihood estimator of $P_E(e)$ via
 \begin{equation}
-{\hat{P}}_E(e) = \frac{1}{n} \sum_{j=1}^n\indicatorBig{E_j=e} \omega_j.  \label{eq:PofE_IPCW} \\
+{\hat{P}}_E(e) = \frac{1}{n} \sum_{j=1}^n \omega_j \indicatorBig{E_j=e}.  
+\label{eq:PofE_IPCW}
 \end{equation}
 We note that this is equivalent to the Kaplan-Meier estimator of $P_E(e)$.
  
 \item Obtain an IPCW maximum likelihood estimator of the distribution for the discrete variables $\mbf{Z_i}$ via
 \begin{equation}
-{\hat{P}}_{\mbf{Z}_i|E}(\mbf{z}_i|e) = \frac{\frac{1}{n}\sum_{j=1}^n \indicatorBig{\mbf{Z}_{ij}=\mbf{z}_i, E_j=e} \omega_j } {\frac{1}{n}\sum_{j=1}^n \indicatorBig{E_j=e}\omega_j} \label{eq:PofZ_IPCW},
+{\hat{P}}_{\mbf{Z}_i|E}(\mbf{z}_i|e) = \frac{\frac{1}{n}\sum_{j=1}^n \omega_j \indicatorBig{\mbf{Z}_{ij}=\mbf{z}_i, E_j=e} } {\frac{1}{n}\sum_{j=1}^n \omega_j \indicatorBig{E_j=e} } \label{eq:PofZ_IPCW},
 \end{equation}
 \item Obtain an IPCW estimator of the parameters in the mixture of Gaussian densities for the continuous variables $\mbf{Y_i}$ using a weighted EM algorithm. The contribution of maximum likelihood where the contribution of the $i^{th}$ subject to the likelihood is weighted by $\omega_i$. The update formulas for the parameter estimates previously given in Equation~\eqref{eq:EMupdate} become
 \begin{eqnarray} \label{eq:EMupdate_IPCW}
@@ -374,37 +367,46 @@ We note that this is equivalent to the Kaplan-Meier estimator of $P_E(e)$.
 where $p_{i,m}^{(\nu)} = E_{\theta^{(\nu)}} (I_{j,m,z_j,e} |\mbf{Y}_{ij},E_i, \mbf{Z}_{ij}) \times \indicatorBig{\mbf{Z}_{ij}=z_j, E_i=e}$ as before.
 \end{enumerate}
 
-Note that for subjects with $E=0$ (and $V > \tau$) the weights for all individuals are $1/\hat{G}(\tau)$ so the maximum likelihood estimators for $P_{\mbf{G}_j|E}(\mbf{g}_j|e=0)$ are the same as in the unweighted analysis. Further details of the weighted EM algorithm are provided in \citet{fraley2012mclust}. Many software packages implementing the EM algorithm (e.g., Matlab, R) allow weights to be provided as arguments to the EM function, making the IPCW Bayesian network approach straightforward to implement.
+The weights for all subjects with $E=0$ and $V > \tau$ are $1/\hat{G}(\tau)$ so the maximum likelihood estimators for $P_{\mbf{G}_j|E}(\mbf{g}_j|e=0)$ are the same as in the unweighted analysis. Further details of the weighted EM algorithm are provided in \citet{fraley2012mclust}. Many software packages implementing the EM algorithm allow weights to be provided as arguments to the EM function, making the IPCW Bayesian network approach straightforward to implement.
 
-Tuning a Bayesian network for optimal performance may involve determining the network structure and/or controlling model complexity for a given structure. In the Bayesian network implementation we present below, we consider only a single network structure which is informed by discussions with our clinical colleagues; however, a set of feasible structures could easily be compared on a test set or via cross-validation using the calibration and reclassfication metrics described in Section \ref{sec:performanceMetrics}. Algorithms for learning graph structure (e.g., \citet{deCampos2011}) often use scoring criteria such as the BIC which we, as we show below, are easily adapted to the censored data setting.
+Tuning a Bayesian network for optimal performance may involve determining the network structure and/or controlling model complexity for a given structure. In the Bayesian network implementation for our data application, we consider only a single network structure which is informed by discussions with our clinical colleagues (see Figure \ref{figure:BayesNet}); however, a set of feasible structures could easily be compared on a test set or via cross-validation using the calibration and reclassification metrics described in Section \ref{sec:performanceMetrics}. 
 
-In the above presentation of the Bayesian Network, a parameter $M$ controls the number of mixture components used to estimate the conditional distributions of continuous features.  One could consider $M$ to be a tunable parameter, and either select a single value or, as suggested in \citet{Bandyopadhyay2014}, use a model averaging procedure to combine results across multiple values of $M$.  \citet{Bandyopadhyay2014} determines the relative weights of each model using the Bayesian Information Criteria (BIC). In settings without censoring, $BIC = -2 \log(L) + k \log(n)$ where $l$ is the likelihood evaluated at the maximum likelihood parameter estimates, $n$ is the number of subjects in the training set, and $k$ the number of (free) parameters in the model. Since IPC weights are incorporated directly into the likelihood, it is straightforward to construct an IPC-weighted BIC appropriate for censored-data settings via $BIC^\omega = -2 \log(L^\omega) + k \log(\sum_i \omega_i)$, where$L^\omega$ is the IPC-weighted likelihood given in Equation (15) of \citet{Bandyopadhyay2014}.
+In the above presentation of the Bayesian Network, a parameter $M$ controls the number of mixture components used to estimate the conditional distributions of continuous features.  One could consider $M$ to be a tunable parameter, and either select a single value or, as suggested in \citet{Bandyopadhyay2014}, use a model averaging procedure to combine results across multiple values of $M$.  \citet{Bandyopadhyay2014} determines the relative weights of each model using the Bayesian Information Criteria (BIC). In settings without censoring, $BIC = -2 \log(L) + k \log(n)$ where $l$ is the likelihood evaluated at the maximum likelihood parameter estimates, $n$ is the number of subjects in the training set, and $k$ the number of (free) parameters in the model. Since IPC weights are incorporated directly into the likelihood, it is straightforward to construct an IPC-weighted BIC appropriate for censored-data settings via $BIC^\omega = -2 \log(L^\omega) + k \log(\sum_i \omega_i)$, where$L^\omega$ is the IPC-weighted likelihood given in Equation (15) of \citet{Bandyopadhyay2014}. Algorithms for learning graph structure (e.g., \citet{deCampos2011}) also often use scoring criteria such as the BIC which can be adapted to the censored data setting as described above.
 
 %%
 \subsection{Decision trees}
 
-[ LITERATURE REVIEW ON DECISION TREES ]
-To grow the tree, CART \citep{Breiman1984} uses the decrease in Gini impurity to determine which covariate and a what level to split a node. The change in Gini impurity for a splitting rule is given by
-\[
-\Delta I_G(S) = \hat p(S) ( 1- \hat p(S)) - \frac{1}{N_S} \left[ N_{S_L} \hat p(S_L) (1 - \hat p(S_L)) + N_{S_R} \hat p(S_R)( 1- \hat p(S_R)) \right]
-\]
-where $\hat p(S), \hat p(S_L),$ and $\hat p(S_R)$ are respectively the sample proportion of outcomes in a node $S$, and the left-hand and right-hand children for the particular splitting rule, $N_{S_L}$, and $N_{S_R}$ are the number of instances in each child, and $N_S = N_{S_L} + N_{S_R}$. In the unweighted case, the sample proportions are computed in the usual way (the nonparametric maximum likelihood estimators), i.e.:
-\[
-\hat p(S) = \frac{1}{N_S} \sum_{i \in S} E_i , \ \ \   \hat p(S_L) = \frac{1}{N_{S_L}} \sum_{i \in S_L} E_i , \ \ \ \hat p(S_R) = \frac{1}{N_{S_R}} \sum_{i \in S_R} E_i
-\]
-where $E_i$ is the binary event indicator. 
+Recursive partitioning is a powerful and flexible way to build predictive models for both discrete and continuous outcomes, and decision tree algorithms are widely applied in biomedicine \citep{Mansiaux2014,Liu2014,Hartney2014,Munoz2014,Abdollah2014}. Decision trees aim to partition training data into subgroups with homogeneous outcomes, with subgroups defined by a set of binary splits of the features. The prediction for a given test instance is made by identifying the partition it belongs to, then computing a summary statistic (e.g., the sample average) for training instances in that partition. 
 
-Once the structure of the tree has been determined though a series of binary splits, if we let $Z_{i}=j$ if the $i^{th}$ subject is in the $j^{th}$ terminal node, we can estimate $P_{E|Z}(e|z)$ using the standard (non-parametric) maximum likelihood estimator
+Many techniques have been proposed to ``grow'' decision trees based on training data, mostly differing in the criteria used to decide how/if to split a node and to prevent overfitting. One popular technique, CART \citep{Breiman1984classification}, uses the decrease in Gini impurity to determine which feature and at what level to split a node. The change in Gini impurity for a splitting rule is given by
+\[
+\Delta I_G(S) = \hat \pi(S) ( 1- \hat \pi(S)) - \frac{1}{N_S} \left[ N_{S_L} \hat \pi(S_L) (1 - \hat \pi(S_L)) + N_{S_R} \hat \pi(S_R)( 1- \hat \pi(S_R)) \right]
+\]
+where $\hat \pi(S), \hat \pi(S_L),$ and $\hat \pi(S_R)$ are respectively the sample proportion of outcomes in a node $S$, and the left-hand and right-hand children for the particular splitting rule, $N_{S_L}$, and $N_{S_R}$ are the number of instances in each child, and $N_S = N_{S_L} + N_{S_R}$. The C4.5 and C5.0 decision trees \citep{REF} use the \textit{information gain} metric instead of the Gini impurity to make decisions on how to split each node: 
+\[
+\Delta I_E(S) =  \hat I_E(S) - \frac{1}{N_S} [ N_{S_L} \hat I_E(S_L) + N_{S_R} \hat I_E^\omega(S_R) ]
+\]
+where
+\[
+\hat I_E(\cdot) = - \hat \pi(\cdot) \log \hat \pi(\cdot) - (1 - \hat p^\omega(\cdot)) \log(1 - \hat \pi(\cdot))
+\]
+In the unweighted case, the sample proportions $\hat \pi$ are computed using the usual nonparametric maximum likelihood estimators, i.e.:
+\[
+\hat \pi(S) = \frac{1}{N_S} \sum_{i \in S} E_i , \ \ \   \hat p(S_L) = \frac{1}{N_{S_L}} \sum_{i \in S_L} E_i , \ \ \ \hat p(S_R) = \frac{1}{N_{S_R}} \sum_{i \in S_R} E_i
+\]
+where $E_i$ is the binary event indicator. For a test instance $i$ with features $\mathbf{x}$ falling in tree node $z$, we can estimate the risk $\pi_i(\mathbf{x})$ as
 
 \begin{equation*}
-\hat{P}_{E|Z}(e|z) = \frac{\frac{1}{n}\sum_{i=1}^n \indicatorBig {E_i=e, Z_i=z}}{\frac{1}{n} \sum_{i=1}^n \indicatorBig { Z_i=z}}
+\hat \pi_i(\mathbf{x}) = \frac{\frac{1}{n}\sum_{j=1}^n \indicatorBig {E_j=1, Z_j=z}}{\frac{1}{n} \sum_{j=1}^n \indicatorBig { Z_j=z}}
 \end{equation*}  
+
+where $Z_j=z$ indicates that training instance $j$ belongs to node $z$.
 
 \subsubsection{IPC-weighted decision trees}
 
-It is straightforward to extend decision trees to incorporate IPC weighting: individual cases in the training set are assigned weights $\omega_i$ as described above, and the $\omega_i$ are used as ``case weights'' in the decision tree algorithm. With IPC weighting, we simply calculate a weighted decrease in Gini impurity,
+It is straightforward to extend decision trees to incorporate IPC weighting: individual cases in the training set are assigned weights $\omega_i$ as described above, and the $\omega_i$ are used as ``case weights'' in the decision tree algorithm. With IPC weighting, we calculate a weighted decrease in Gini impurity,
 \[
-\Delta I^\omega_G(S) = \hat p^\omega(S) ( 1- \hat p^\omega(S)) - \frac{1}{N^\omega_S} \left[ N^\omega_{S_L} \hat p^\omega(S_L) (1 - \hat p^\omega(S_L)) + N^\omega_{S_R} \hat p^\omega(S_R)( 1- \hat p^\omega(S_R)) \right]
+\Delta I^\omega_G(S) = \hat \pi^\omega(S) ( 1- \hat \pi^\omega(S)) - \frac{1}{N^\omega_S} \left[ N^\omega_{S_L} \hat \pi^\omega(S_L) (1 - \hat \pi^\omega(S_L)) + N^\omega_{S_R} \hat \pi^\omega(S_R)( 1- \hat \pi^\omega(S_R)) \right]
 \]
 where
 \[
@@ -414,27 +416,27 @@ N^\omega_S = \sum_{i \in S} \omega_i,
 \]
 and
 \[
-\hat p^\omega(S) = \frac{ \sum_{i \in S} \omega_i E_i }{ N^\omega_S },
-\ \ \ \hat p^\omega(S_L) = \frac{ \sum_{i \in S_L} \omega_i E_i }{ N^\omega_{S_L} },
-\ \ \ \hat p^\omega(S_R) = \frac{ \sum_{i \in S_R} \omega_i E_i }{ N^\omega_{S_R} },
+\hat \pi^\omega(S) = \frac{ \sum_{i \in S} \omega_i E_i }{ N^\omega_S },
+\ \ \ \hat \pi^\omega(S_L) = \frac{ \sum_{i \in S_L} \omega_i E_i }{ N^\omega_{S_L} },
+\ \ \ \hat \pi^\omega(S_R) = \frac{ \sum_{i \in S_R} \omega_i E_i }{ N^\omega_{S_R} },
 \]
 
-The identical approach can be applied to estimate a weighted version of the information gain metric which forms the basis of the C4.5 and C5.0 decision tree algorithms:
+The identical approach can be applied to estimate a weighted version of the information gain metric:
 \[
 \Delta I^\omega_E(S) =  \hat I^\omega_E(S) - \frac{1}{N^\omega_S} [ N^\omega_{S_L} \hat I_E^\omega(S_L) + N^\omega_{S_R} \hat I_E^\omega(S_R) ]
 \]
-where
+with
 \[
-\hat I^\omega_E(\cdot) = - \hat p^\omega(\cdot) \log \hat p^\omega(\cdot) - (1 - \hat p^\omega(\cdot)) \log(1 - \hat p^\omega(\cdot))
+\hat I^\omega_E(\cdot) = - \hat \pi^\omega(\cdot) \log \hat \pi^\omega(\cdot) - (1 - \hat \pi^\omega(\cdot)) \log(1 - \hat \pi^\omega(\cdot))
 \]
 
-Again, once the structure of the tree has been determined, we estimate the probability of an event in the terminal nodes by taking the weighted (non-parametric) maximum likelihood estimator
+Once the structure of the tree has been determined, the predicted risk of a test instance $i$ with features $\mathbf{x}$ falling in terminal node $z$ is estimated as the weighted (non-parametric) maximum likelihood estimator:
 
 \begin{equation*}
-\hat{P}_{E|Z}(e|z) = \frac{\frac{1}{n}\sum_{i=1}^n \indicatorBig {E_i=e, Z_i=z}\omega_i}{\frac{1}{n} \sum_{i=1}^n \indicatorBig { Z_i=z}\omega_i}
+\hat \pi_i(\mathbf{x}) = \frac{\frac{1}{n}\sum_{j=1}^n \omega_j \indicatorBig {E_j=1, Z_j=z}}{\frac{1}{n} \sum_{j=1}^n \omega_j \indicatorBig { Z_j=z}}
 \end{equation*}  
 
-Because of their flexibility, regression trees often overfit training data. Many overfitting avoidance techniques have been proposed, with most involving a tuning parameter which restricts the complexity of the tree. One strategy consists of setting a lower limit $m$ on the number of individuals assigned to a terminal node; in our notation above, the node $S$ would not be split according to a given rule unless $\min(N_{S_L}, N_{S_R}) \geq m$. This strategy is easily generalized to the case with censoring by requiring that $\min(N^\omega_{S_L}, N^\omega_{S_R}) \geq m$; however we note that $N_{S_L} \approx N^\omega_{S_L}$ and $N_{S_R} \approx N^\omega_{S_R}$ as the expected value of the weights is one, so in practice we often control the size of the tree based on $\min(N_{S_L}, N_{S_R})$. Another approach requires that the information gain exceed a certain threshold $\theta$, e.g., $\Delta I_E(S) \geq \theta$. Substituting $\Delta I^\omega_E(S)$ for $\Delta I_E(S)$ (and similarly $\Delta I^\omega_G(S)$ for $\Delta I_G(S)$) allows the same rule to be used in the censored data setting. Final tuning parameter values may be chosen by cross-validation, where the cross-validated criterion to optimize could involve a measure of calibration, reclassification (C-index/NRI), or a combination of both.
+Because of their flexibility, regression trees often overfit training data. Many overfitting avoidance techniques have been proposed, with most involving a tuning parameter which restricts the complexity of the tree. One strategy consists of setting a lower limit $m$ on the number of individuals assigned to a terminal node; in our notation above, the node $S$ would not be split according to a given rule unless $\min(N_{S_L}, N_{S_R}) \geq m$. This strategy is easily generalized to the case with censoring by requiring that $\min(N^\omega_{S_L}, N^\omega_{S_R}) \geq m$; however we note that $N_{S_L} \approx N^\omega_{S_L}$ and $N_{S_R} \approx N^\omega_{S_R}$ as the expected value of the weights is one, so in practice $\min(N_{S_L}, N_{S_R})$ is usually sufficient. Another approach requires that the information gain exceed a certain threshold $\theta$, e.g., $\Delta I_E(S) \geq \theta$. Substituting $\Delta I^\omega_E(S)$ for $\Delta I_E(S)$ (and similarly $\Delta I^\omega_G(S)$ for $\Delta I_G(S)$) allows the same rule to be used in the censored data setting. Final tuning parameter values may be chosen by cross-validation, where the cross-validated criterion to optimize could involve a measure of calibration, reclassification (C-index/NRI), or a combination of both.
 
 %%%
 
@@ -580,7 +582,7 @@ Nodes were jointly modeled as described in Section \ref{sect:BN}, assuming a sin
 
 \subsection{Classification trees}
 
-Classification trees were built using the \texttt{rpart} package in R, which implements the classification and regression trees described in \citet{Breiman1984}. Nodes are split based on the Gini loss criterion; the loss matrix was modified to give 10 times as much weight to incorrect non-event predictions among those experiencing events than the reverse, to induce additional splits and improve discrimination among the large fraction of the population with a relatively low (e.g., $< 5\%$) 5-year CV event risk. The minimum number of subjects in each terminal node was fixed at 200. Risk factors were not scaled prior to fitting the tree. In this illustrative example, no explict pruning was performed, though this would be advisable to optimize performance in practice. IPC weights were incorporated via the \texttt{weights} argument in \texttt{rpart}, which treats them as case weights. [ DO WE NEED TO NORMALIZE THE WEIGHTS TO SUM TO SOMETHING SPECIFIC? ]
+Classification trees were built using the \texttt{rpart} package in R, which implements the classification and regression trees described in \citet{Breiman1984classification}. Nodes are split based on the Gini loss criterion; the loss matrix was modified to give 10 times as much weight to incorrect non-event predictions among those experiencing events than the reverse, to induce additional splits and improve discrimination among the large fraction of the population with a relatively low (e.g., $< 5\%$) 5-year CV event risk. The minimum number of subjects in each terminal node was fixed at 200. Risk factors were not scaled prior to fitting the tree. In this illustrative example, no explict pruning was performed, though this would be advisable to optimize performance in practice. IPC weights were incorporated via the \texttt{weights} argument in \texttt{rpart}, which treats them as case weights. [ DO WE NEED TO NORMALIZE THE WEIGHTS TO SUM TO SOMETHING SPECIFIC? ]
 
 %%%%
 \section{Results} \label{sect:data-analysis2}
