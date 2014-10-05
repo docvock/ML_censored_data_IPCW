@@ -605,12 +605,19 @@ It is clear from Table~\ref{table:resSummary} that both the \emph{Discard-} and 
 
 \section{Discussion}
 
-[ REWRITE ]
+We have proposed a general-purpose technique for improving the performance of machine learning methods when the binary class indicator is unknown for a subset of individuals due to censoring. Though motivated by an example in electronic health data, our technique is generally applicable to any situation where event outcomes are subject to censoring. For example, in economics, one might wish to predict whether recently-unemployed individuals will be re-hired within a fixed time period, an outcome which is likely to be censored in most feasible study designs. In our context, we plan to incorporate this technique into a point-of-care clinical decision support system, which will provide more accurate cardiovascular risk predictions for patients based on their individual health history.
 
-[ ONE PARAGRAPH: Allows use of ensemble methods ]
+\subsection{Limitations}
 
-\subsection{Generalizability and future work}
-Though motivated by an example in electronic health data, our technique is generally applicable to any situation where event outcomes are subject to censoring. For example, in economics, one might wish to predict whether recently-unemployed individuals will be re-hired within a fixed time period, an outcome which is likely to be censored in most feasible study designs. In our context, we plan to incorporate this technique into a point-of-care clinical decision support system, which will provide more accurate cardiovascular risk predictions for patients based on their individual health history.
+The statistical validity of IPCW rests on several assumptions, in particular that the censoring time is independent of both the event time and patient features. This is a plausible assumption for EHD, where censoring typically occurs for reasons unrelated to a person's health status, but the assumption is much less plausible in other contexts. For example, if data were collected from a small regional hospital, patients with severe health problems might be censored because they went to a larger facility to seek care. In practice, it is unlikely that the independence assumption is satisfied exactly, and it is an open question how the degree to and manner in which the assumption is violated affects the performance of IPCW techniques.
+
+The benefits of IPCW also depend on the proportion of subjects who are censored and hence have an undetermined event indicator. In our data, approximately half of subjects were censored before 5 years, a level of censoring which is amenable to IPCW. When few subjects (e.g., $< 10\%$) are censored, the gains of IPCW over ``naive'' techniques will be modest. When the vast majority (e.g., $> 90\%$) are censored, only a small fraction of subjects will be used in the analysis, with many having large and highly variable weights. 
+
+\subsection{Extensions and Future Work}
+
+We have provided several examples of how to incorporate IPCW into established machine learning techniques. There are, of course, a wide variety of ML algorithms which we did not implement, but the simplicity of the IPCW approach means that it can be adapted to a wide range of existing tools. Indeed, due to IPCW's generality of ease and implementation, it would be relatively straightforward to develop ensemble-based risk prediction tools to apply to censored data. For instance, given an implementation of IPCW decision trees, constructing an IPCW random forest is quite simple.
+
+Most of the analyses reported in this paper were performed using implementations of these techniques in standard statistical software, but support for a ``weights'' argument is not universal across popular ML packages. Even implementations which do allow for weights to be specified may not use them consistently, e.g., they will be used for training the model but not for tuning parameter selection. In ongoing work, we are developing more general resampling-based approaches which will allow IPCW analyses to be performed using ML software which lacks the capacity to handle user-specified weights.
 
 % Acknowledgments
 %\begin{acks}
