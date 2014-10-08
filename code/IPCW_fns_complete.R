@@ -63,7 +63,7 @@ rpart_bag_functions <- function(varnms, B, cens_method = "IPCW", train.dat.all, 
 	return(probs)
 	}
 
-## IPCW logisitc regression
+## IPCW logistic regression
 logistic_functions <- function(varnms, cens_method = "IPCW", train.dat, test.dat = NULL, 
 	ID = 1:nrow(train.dat),...) {  
 
@@ -82,9 +82,9 @@ logistic_functions <- function(varnms, cens_method = "IPCW", train.dat, test.dat
 	}
 	
   if(is.null(test.dat)) {
-    probs <- predict(LR, type = "response", na.action=na.omit)[,1]    
+    probs <- as.vector(predict(LR, type = "response", na.action=na.omit)    
   } else {
-    probs <- predict(LR, newdata=test.dat, type = "response", na.action = na.omit)[,1]    
+    probs <- predict(LR, newdata=test.dat, type = "response", na.action = na.omit)
   }
   return(1-probs)
 }
