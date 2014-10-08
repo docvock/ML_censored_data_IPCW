@@ -82,7 +82,7 @@ logistic_functions <- function(varnms, cens_method = "IPCW", train.dat, test.dat
 	}
 	
   if(is.null(test.dat)) {
-    probs <- as.vector(predict(LR, type = "response", na.action=na.omit)    
+    probs <- predict(LR, type = "response", na.action=na.omit)    
   } else {
     probs <- predict(LR, newdata=test.dat, type = "response", na.action = na.omit)
   }
