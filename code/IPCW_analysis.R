@@ -4,7 +4,8 @@
 
 setwd("//hifs00.ahc.umn.edu/Data/Carlson/Portal")
 dat.base <- "Data/DataLock/DataLockv2.3.1/"
-source("C:\\Users\\bstvock\\Documents\\research\\IPCW_machine_learning\\code\\IPCW_fns_complete.R")
+#source("C:\\Users\\bstvock\\Documents\\research\\IPCW_machine_learning\\code\\IPCW_fns_complete.R")
+source("C:/Users/Julian/Google Drive/iPredict/manuscripts/ML-for-censored-data/code/IPCW_fns_complete.R")
 
 # libraries used
 library(data.table)
@@ -28,18 +29,18 @@ HP <- mutate(HP, TC = pmin(TC, 500), gender_f = as.factor(gender),
 	gender_SBP_Meds = ifelse(gender==1 & SBP_Meds == 1, 1,
 															ifelse(gender == 0 & SBP_Meds == 1, 2,
 																ifelse(gender == 1 & SBP_Meds == 0, 3, 4))),
-	gender_s = stand(gender), 
-	age_s = stand(age),
-	SBP_s = stand(SBP),
-	BMI_s = stand(BMI),
-	HDL_s = stand(HDL),
-	TC_s = stand(TC),
-	Has_Diab_s = stand(Has_Diab),
-	Smoking_s = stand(Smoking),
-	SBP_Meds_s = stand(SBP_Meds))
+	gender_s = scale(gender), 
+	age_s = scale(age),
+	SBP_s = scale(SBP),
+	BMI_s = scale(BMI),
+	HDL_s = scale(HDL),
+	TC_s = scale(TC),
+	Has_Diab_s = scale(Has_Diab),
+	Smoking_s = scale(Smoking),
+	SBP_Meds_s = scale(SBP_Meds))
 
 # Time horizon for prediction in years
-SURVTIME <- 7 
+SURVTIME <- 5 
 # Define the outcome of interest (time to Hard CVD, Soft CVD, etc.) 
 HP <- mutate(HP, T.use = DaysToEvent_Fram, C.use = CVDEvent_Fram, 
 	eventsurv.ind = as.factor(C.use == 1 & T.use <= (SURVTIME*365)))
@@ -75,7 +76,7 @@ HP.train <- mutate(HP.train, wts = ifelse(T.use < (SURVTIME*365) & C.use==0, 0,
 	                           1 / KM.C(pmin(T.use , SURVTIME*365)) ))
 
 
-#  Recursive Partitionin Models
+#  Recursive Partitioning Models
 lossmat <- rbind(c(0,1),c(5,0))
 pRP <- rpart_functions(varnms_a, "IPCW", HP.train, HP.test, lossmat, "information", cp = 0.00001, 
 	minbucket = 100)
@@ -84,104 +85,70 @@ pRP.zero <- rpart_functions(varnms_a, "ZERO", HP.train, HP.test, lossmat, "infor
 pRP.disc <- rpart_functions(varnms_a, "DISCARD", HP.train, HP.test, lossmat, "information", 
 	cp = 0.00001, minbucket = 100)
 
-#  Bagged Recursive Partitionin Models
-lossmat <- rbind(c(0,1),c(5,0))
-set.seed(1101985)
-pRP.bag <- rpart_bag_functions(varnms_a, 50, "IPCW", HP.train, HP.test, lossmat, "information",
-	cp = 0.00001, minbucket = 100)
-pRP.bag.zero <- rpart_bag_functions(varnms_a, 50, "ZERO", HP.train, HP.test, lossmat, "information", 
-	cp = 0.00001, minbucket = 100)
-pRP.bag.disc <- rpart_functions(varnms_a, 50, "DISCARD", HP.train, HP.test, lossmat, "information", 
-	cp = 0.00001, minbucket = 100)
-
 #  Logistic Regression Models
-pLR <- logistic_functions(intx.varnms, "IPCW", HP.train, HP.test)
-pLR.zero <- logistic_functions(intx.varnms, "ZERO", HP.train, HP.test)
-pLR.disc <- logistic_functions(intx.varnms, "DISCARD", HP.train, HP.test)
-
-#  Bagged Logistic Regression Models
-set.seed(1101985)
-pLR.bag <- logistic_bag_functions(intx.varnms, 50, "IPCW", HP.train, HP.test)
-pLR.bag.zero <- logistic_bag_functions(intx.varnms, 50, "ZERO", HP.train, HP.test)
-pLR.bag.disc <- logistic_bag_functions(intx.varnms, 50, "DISCARD", HP.train, HP.test)
+pLR <- as.vector(logistic_functions(varnms_a, "IPCW", HP.train, HP.test))
+pLR.zero <- as.vector(logistic_functions(varnms_a, "ZERO", HP.train, HP.test))
+pLR.disc <- as.vector(logistic_functions(varnms_a, "DISCARD", HP.train, HP.test))
 
 #  Generalized Additive Models
 pGAM <- GAM_functions(varnms_fixed, varnms_smooth, "IPCW", HP.train, HP.test)
-pGAM.zero <- GAM_functions(intx.varnms, "ZERO", HP.train, HP.test)
-pGAM.disc <- GAM_functions(intx.varnms, "DISCARD", HP.train, HP.test)
+pGAM.zero <- GAM_functions(varnms_fixed, varnms_smooth, "ZERO", HP.train, HP.test)
+pGAM.disc <- GAM_functions(varnms_fixed, varnms_smooth, "DISCARD", HP.train, HP.test)
 
-#  Bagged Generalized Additive Models
-set.seed(1101985)
-pGAM.bag <- GAM_bag_functions(varnms_fixed, varnms_smooth, 25, "IPCW", HP.train, 
-	HP.test)
+# Cox model
+fmla <- as.formula(paste0("Surv(T.use,C.use)~",paste0(varnms_a,collapse="+")))
+Cox.train <- coxph(fmla,data=HP.train)
+p1 <- survfit(Cox.train,HP.test[1,varnms_a])
+ind.surv <- max(which(p1$time<=SURVTIME*365))
 
-#  Bagged MARS Models
-set.seed(1101985)
-pMARS <- MARS_bag_functions(varnms, 50, "IPCW", HP.train, HP.test)
-pMARS.zero <- MARS_bag_functions(varnms, 50, "ZERO", HP.train, HP.test)
-pMARS.disc <- MARS_bag_functions(varnms, 50, "DISC", HP.train, HP.test)
+pCPH <- survfit(Cox.train,HP.test[,varnms_a],se.fit=FALSE,conf.type="none")$surv[ind.surv,]
 
-#  Bagged knn
-set.seed(1101985)
-pknn <- knn_bag_functions(varnms_stand, 50, "IPCW", HP.train, HP.test, k = 100)
-pknn.zero <- knn_bag_functions(varnms_stand, 50, "ZERO", HP.train, HP.test, k = 100)
-pknn.disc <- knn_bag_functions(varnms_stand, 50, "DISC", HP.train, HP.test, k = 100)
+#######  Compute calibration and reclassification statistics
 
-
-#  Calibration statistics
 risk.cutpts = c(Inf,1-c(0.05,0.1,0.15,0.2),-Inf)
 library(survMisc)
+source("C:/Users/Julian/Google Drive/iPredict/manuscripts/ML-for-censored-data/code/model-evaluation-metrics.R")
 
-calib.stat(pRP, risk.cutpts, HP.test)
-calib.stat(pRP.zero, risk.cutpts, HP.test)
-calib.stat(pRP.disc, risk.cutpts, HP.test)
+ML.preds <- list(pRP,pRP.zero,pRP.disc,pLR,pLR.zero,pLR.disc,pGAM,pGAM.zero,pGAM.disc,pCPH)
+ML.wellcalib <- list(pRP,pLR,pGAM,pCPH)
 
-calib.stat(pRP.bag, risk.cutpts, HP.test)
-calib.stat(pRP.bag.zero, risk.cutpts, HP.test)
-calib.stat(pRP.bag.disc, risk.cutpts, HP.test)
+pred.rate <- 100*(1-unlist(lapply(ML.preds,mean)))
+calib <- unlist(lapply(ML.preds,calib.stat,cutpts=risk.cutpts,test.dat=HP.test))
+c.index <- unlist(lapply(ML.preds,Cindex,test.dat=HP.test))
 
-calib.stat(pLR, risk.cutpts, HP.test)
-calib.stat(pLR.zero, risk.cutpts, HP.test)
-calib.stat(pLR.disc, risk.cutpts, HP.test)
+### Compute the cNRI
 
-calib.stat(pLR.bag, risk.cutpts, HP.test)
-calib.stat(pLR.bag.zero, risk.cutpts, HP.test)
-calib.stat(pLR.bag.disc, risk.cutpts, HP.test)
+predmat <- data.frame(RP=pRP,LR=pLR,GAM=pGAM,CPH=pCPH)
+c.nri <- -combn(1:ncol(predmat),2,function(x) { 
+  cNRI(p1=predmat[,x[[1]]],p2=predmat[,x[[2]]],cutpts=1-risk.cutpts,test.dat=HP.test,t=SURVTIME*365)
+})
+c.nri.nms <- combn(1:ncol(predmat),2,function(x) { paste(colnames(predmat[,x]),collapse=" vs. ") })
+colnames(c.nri) = c.nri.nms
 
-calib.stat(pGAM, risk.cutpts, HP.test)
-calib.stat(pGAM.zero, risk.cutpts, HP.test)
-calib.stat(pGAM.discard, risk.cutpts, HP.test)
+### Prepare results tables
 
-calib.stat(pGAM.bag, risk.cutpts, HP.test)
-calib.stat(pMARS, risk.cutpts, HP.test)
-calib.stat(pknn, risk.cutpts, HP.test)
+### Calibration and C-index
+rownms <- c(as.vector(outer(c("IPCW-","Zero-","Discard-"),c("Tree","Logistic","GAM"),paste0)), "Cox")
+colnms <- c("Predicted event rate (%)","Calibration","C-Index")
+results.tab <- data.frame(pred.rate,calib,c.index)
+rownames(results.tab) <- rownms
+colnames(results.tab) <- colnms
 
-# Evaluate the C-index
+library(xtable)
+print( xtable(results.tab,align="lccc",digits=c(0,2,2,3)),
+       hline.after=c(3,6,9) )
 
-Cindex(pRP, HP.test)
-Cindex(pRP.zero, HP.test)
-Cindex(pRP.disc, HP.test)
+### Net reclassification
+colnms <- c("cNRI (Events)", "cNRI (Non-Events)", "cNRI (Overall)")
+rownms <- c("IPCW-Tree vs. IPCW-Logistic",
+            "IPCW-Tree vs. IPCW-GAM",
+            "IPCW-Tree vs. Cox",
+            "IPCW-Logistic vs. IPCW-GAM",
+            "IPCW-Logistic vs. Cox",
+            "IPCW-GAM vs. Cox")
+results.tab <- t(c.nri)
+rownames(results.tab) <- rownms
+colnames(results.tab) <- colnms
 
-Cindex(pRP.bag, HP.test)
-Cindex(pRP.bag.zero, HP.test)
-Cindex(pRP.bag.disc, HP.test)
-
-Cindex(pLR, HP.test)
-Cindex(pLR.zero, HP.test)
-Cindex(pLR.disc, HP.test)
-
-Cindex(pLR.bag, HP.test)
-Cindex(pLR.bag.zero, HP.test)
-Cindex(pLR.bag.disc, HP.test)
-
-Cindex(pGAM, HP.test)
-Cindex(pGAM.zero, HP.test)
-Cindex(pGAM.disc, HP.test)
-
-Cindex(pGAM.bag, HP.test)
-Cindex(pMARS, HP.test)
-Cindex(pknn, HP.test)
-
-## Evaluate the reclassification performance of well-calibrated models
-
+print( xtable(results.tab,align="lccc",digits=c(0,3,3,3)) )
 
