@@ -577,31 +577,49 @@ Classification trees were built using the \texttt{rpart} package in R, which imp
 %%%%
 \section{Results} \label{sect:data-analysis2}
 
-The full training dataset consists of 65,522 patients (75\% of the entire analysis population) drawn at random from the cohort. 52\% were censored prior to five years, so that \emph{Discard-} models were trained on 31,345 subjects. The performance of all models is evaluated based on the risk predictions of the remaining 21,841 patients not included in any training set. The calibration and discrimination of the models evaluated on the test set are summarized in Table~\ref{table:resSummary}.
+The full training dataset consists of 65,522 patients (75\% of the entire analysis population) drawn at random from the cohort. 52\% were censored prior to five years, so that \emph{Discard-} models were trained on 31,345 subjects. The performance of all models is evaluated based on the risk predictions of the remaining 21,841 patients not included in any training set. The calibration and discrimination of the models evaluated on the test set are summarized in Table~\ref{table:calib-cindex}.
 
 \begin{table}[ht]
 \centering
-\tbl{Calibration and discrimination of the models described in Table~\ref{table:modelDisc}, evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic K; {\em{C-index}}: Concordance index; {\em{cNRI}}: net reclassification improvement for censored outcomes.  \label{table:resSummary} }{%
-\begin{tabular}{lcccc} \hline\noalign{\smallskip}
-                    &  Predicted event rate (\%) & Calibration statistic &   C-index   & cNRI (\%)       \\
-                    \noalign{\smallskip}\hline\noalign{\smallskip}
-  Zero-Tree & 4.15 & 129.947 & 0.792 &  \\
-  Discard-Tree & 7.10 & 66.520 & 0.793 &  \\
-IPCW-Tree & 5.38 & 18.256 & 0.803 & -3.2 \\
-  \hline
-  Zero-Logistic & 4.14 & 115.398 & 0.809 &  \\
-  Discard-Logistic & 7.08 & 49.570 & 0.809 &  \\
-  IPCW-Logistic & 5.34 & 17.869 & 0.809 & -2.8 \\
-  \hline
-Zero-Bayes & 5.93 & 125.0 (2.9) & 0.800 & \\
-Discard-Bayes & 3.73 & 36.5 (0.9) & 0.800 & \\
-IPCW-Bayes & 4.51 & 11.7 (0.8) & 0.801 & 2.58 \\
+\tbl{Calibration statistic and C-index of the models described in Table~\ref{table:modelDisc}, evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic K; {\em{C-index}}: Concordance index;  \label{table:calib-cindex} }{%
+\begin{tabular}{lccc}
+	& Predicted event rate (\%) & Calibration & C-Index \\ 
+	\hline
+	IPCW-Tree & 5.41 & 17.03 & 0.788 \\ 
+	Zero-Tree & 4.18 & 97.55 & 0.783 \\ 
+	Discard-Tree & 7.15 & 74.21 & 0.785 \\ 
+	\hline
+	IPCW-Logistic & 5.34 & 7.55 & 0.798 \\ 
+	Zero-Logistic & 4.18 & 81.89 & 0.796 \\ 
+	Discard-Logistic & 7.08 & 69.15 & 0.798 \\ 
+	\hline
+	IPCW-GAM & 5.50 & 4.15 & 0.804 \\ 
+	Zero-GAM & 4.18 & 81.43 & 0.801 \\ 
+	Discard-GAM & 7.24 & 61.99 & 0.804 \\ 
+	\hline
+	Cox & 5.66 & 7.64 & 0.798 \\ 
+	\hline
 \end{tabular}}
 \end{table}
 
-[ THOUGHT: COMPUTE AN AVERAGE CONDITIONAL EVENT RATE FOR COMPARISON USING THE COX MODEL? ]
+It is clear from Table~\ref{table:calib-cindex} that both the \emph{Discard-} and \emph{Zero-} variants are poorly calibrated, yielding biased estimates of both the overall and subgroup-specific risks. The amount of improvement in reclassification performance due to using IPCW is technique-dependent; C-index is better for \emph{IPCW-Tree} than \emph{Zero-Tree} and \emph{Discard-Tree}, but there is no apparent effect for logistic regression.
 
-It is clear from Table~\ref{table:resSummary} that both the \emph{Discard-} and \emph{Zero-} variants are poorly calibrated, yielding biased estimates of both the overall and subgroup-specific risks. The amount of improvement in reclassification performance due to using IPCW is technique-dependent; C-index is better for \emph{IPCW-Tree} than \emph{Zero-Tree} and \emph{Discard-Tree}, but there is no apparent effect for logistic regression.
+\begin{table}[ht]
+	\centering
+\tbl{ \label{table:cNRI} }{
+		\begin{tabular}{lccc}
+		\hline
+		& cNRI (Events) & cNRI (Non-Events) & cNRI (Overall) \\ 
+		\hline
+		IPCW-Tree vs. IPCW-Logistic & 0.038 & -0.036 & 0.002 \\ 
+		IPCW-Tree vs. IPCW-GAM & 0.017 & -0.040 & -0.023 \\ 
+		IPCW-Tree vs. Cox & -0.023 & -0.015 & -0.038 \\ 
+		IPCW-Logistic vs. IPCW-GAM & -0.003 & -0.013 & -0.015 \\ 
+		IPCW-Logistic vs. Cox & -0.077 & 0.027 & -0.050 \\ 
+		IPCW-GAM vs. Cox & -0.072 & 0.038 & -0.035 \\ 
+		\hline
+	\end{tabular}}
+\end{table}
 
 \section{Discussion}
 
