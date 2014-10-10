@@ -488,16 +488,23 @@ The available longitudinal data on each patient-member was divided into: (i) a \
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.50\textwidth]{Figure2.eps}
-\caption{Distribution of follow-up times, i.e., time from the end of the baseline period until the patient experiences a CV event, the patient disenrolls from the HMO for more than 90 days, or the study ends, in our entire cohort after applying inclusion/ exclusion criteria detailed in Section \ref{sect:studypop}. \JWcomment{Can we change the x-axis to 'Years of Follow-Up'?}}
+\includegraphics[width=0.50\textwidth]{FollowUp.eps}
+\caption{Distribution of follow-up times, i.e., time from the end of the baseline period until the patient experiences a CV event, the patient disenrolls from the HMO for more than 90 days, or the study ends, in our entire cohort after applying inclusion/ exclusion criteria detailed in Section \ref{sect:studypop}. }
 \label{figure:followDist}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.50\textwidth]{UnknownEvents.eps}
+	\caption{Percentage of subjects with unknown event status, i.e., percentage of patients who are censored prior to a given time, by time horizon over which predictions are desired. \JWcomment{This caption is really unclear. Needs fixing.}}
+	\label{figure:UnknownEvents}
 \end{figure}
 
 %%%
 \subsection{Risk factor ascertainment}
 \label{sect:riskfactors}
 
-Risk factors used as features in the machine learning models included age, gender, systolic blood pressure (SBP), use of blood pressure medications, cholesterol markers (HDL and total cholesterol), body mass index (BMI), smoking status, and presence/absence of diabetes.  Summary statistics and brief descriptions for the risk factors are given in Table \ref{table:cohortProps}. Missing risk factor values were filled in prior to model fitting using multiple imputation by chained equations \citep{vanBuuren2011} to create a dataset with no mising values; Table \ref{table:cohortProps} displays the percentage of missing values for each risk factor in the original (pre-imputation) data set. \JWcomment{NEED TO FILL IN MISSINGNESS \% FOR TOTAL CHOLESTEROL].}
+Risk factors used as features in the machine learning models included age, gender, systolic blood pressure (SBP), use of blood pressure medications, cholesterol markers (HDL and total cholesterol), body mass index (BMI), smoking status, and presence/absence of diabetes.  Summary statistics and brief descriptions for the risk factors are given in Table \ref{table:cohortProps}. Missing risk factor values were filled in prior to model fitting using multiple imputation by chained equations \citep{vanBuuren2011} to create a dataset with no mising values; Table \ref{table:cohortProps} displays the percentage of missing values for each risk factor in the original (pre-imputation) data set. 
 
 \begin{center}
 \begin{table}
@@ -511,9 +518,9 @@ Risk factors used as features in the machine learning models included age, gende
 \ \ \ Male                &  35,833 (41.0)            &  0                &                                                                          \\
 {\bf{Age }}(Years)        & 52      (46  -  60)       &  0                &  Age  at the end of the baseline period                                  \\
 {\bf{SBP }}(mm Hg)        & 123     (115 - 133)       &  0                &  Average systolic blood pressure  during baseline period                    \\
-{\bf{BMI }}(kg/m$^2$)     & 28.0    (24.7  -  32.3)   &  14               & Body mass index                                                          \\
-{\bf{HDL }}(mg/dL)        & 48      (40  -  59)       &  55               &  Final high density lipoprotein during baseline period                  \\
-{\bf{Total cholesterol }}(mg/dL)        & 196      (172  -  222)       &  XXX               &  Final total cholesterol during baseline period                  \\
+{\bf{BMI }}(kg/m$^2$)     & 28.0    (24.7  -  32.3)   &  8               & Body mass index                                                          \\
+{\bf{HDL }}(mg/dL)        & 48      (40  -  59)       &  41               &  Final high density lipoprotein during baseline period                  \\
+{\bf{Total cholesterol }}(mg/dL)        & 196      (172  -  222)       &  41             &  Final total cholesterol during baseline period                  \\
 {\bf{Smoking}}            &                           &                   & Smoking status in EMR                                                    \\
 \ \ \ Never or Passive    & 64,335 (73.6)            &   0               &                                                                          \\
 \ \ \ Quit                & 9,829  (11.3)             &   0               &                                                                          \\
@@ -581,7 +588,7 @@ The full training dataset consists of 65,522 patients (75\% of the entire analys
 
 \begin{table}[ht]
 \centering
-\tbl{Calibration statistic and C-index of the models described in Table~\ref{table:modelDisc}, evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic K; {\em{C-index}}: Concordance index;  \label{table:calib-cindex} }{%
+\tbl{Calibration statistic and C-index of classification tree, logistic regression, GAM, and Bayesian Network models, evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic K; {\em{C-index}}: Concordance index;  \label{table:calib-cindex} }{%
 \begin{tabular}{lccc}
 	& Predicted event rate (\%) & Calibration & C-Index \\ 
 	\hline
