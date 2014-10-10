@@ -3,20 +3,28 @@ dat.base <- "H:/Carlson/Portal/Data/DataLock/DataLockv2.3.1/"
 
 library(data.table)
 ## Read the data
-#HP <- fread(paste0(dat.base,"Data_ver-2.3.1_updated.csv"),verbose=TRUE)
+HP.orig <- data.frame(fread(paste0(dat.base,"Data_ver-2.3.1_updated.csv"),verbose=TRUE))
+HP.orig.sub <- subset(HP.orig,X.age>=40 & X.Comorbitity_All==0) ## Only those: Over age 40, no comorbidities
+
+summary(HP.orig.sub)
 
 HP.imp <- fread(paste0(dat.base,"Data_ver-2.3.1_imputed.csv"),verbose=TRUE)
 HP <- subset(HP.imp,age>=40 & Comorbidity_All==0) ## Only those: Over age 40, no comorbidities
 
-frac.train <- 0.75
-train.set <- sample(1:nrow(HP),frac.train*nrow(HP),replace=FALSE)
-test.set <- setdiff(1:nrow(HP),train.set)
 
 T.all <- HP$DaysToEvent_Fram
 C.all <- HP$CVDEvent_Fram
 
-HP.train <- data.frame(HP[train.set,])
-HP.test <- data.frame(HP[test.set,])
+postscript(paste0(code.base,"../FollowUp.eps"),width=6,height=6,paper="special",horizontal=FALSE,onefile=FALSE)
+### Create a histogram of follow-up times
+hist(T.all/365,xlab="Years of Follow-Up",ylab="Number of Patients",main=NULL,col="gray",breaks=10)
+dev.off()
+### Plot the percentage of patients with unknown event status
+postscript(paste0(code.base,"../UnknownEvents.eps"),width=6,height=6,paper="special",horizontal=FALSE,onefile=FALSE)
+times <- seq(0,max(T.all),length.out=100)
+pct.unknown <- sapply(times,function(t) { mean(T.all<t & C.all==0)})
+plot(times/365,pct.unknown,type="l",ylab="Percentage of patients with unknown event status",xlab="Time horizon (in years)")
+dev.off()
 
 T.train <- HP.train$DaysToEvent_Fram
 C.train <- HP.train$CVDEvent_Fram
