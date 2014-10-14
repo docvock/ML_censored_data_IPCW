@@ -7,7 +7,12 @@ NRI <- function(risks.1,risks.2,event.ind) {
 
 ## Function for computing net reclassification improvement, taking censoring into account
 ## Due to Pencina (2011)
-cNRI <- function(p1,p2,cutpts,test.dat,t) {
+## Typically cNRI weights reclassification for events and non-events equally but this need not 
+## be the case. This is especially problematic when the proportion of events is significantly
+## different from 0.5 and one of the models is misspecified. The argument class_wt gives the
+## relative weight for reclassifying events and non-event respectively
+
+cNRI <- function(p1, p2, cutpts, test.dat, t, class_wt = c(1, 1)) {
   risks.1 <- cut(1-p1,breaks=cutpts,labels=FALSE)
   risks.2 <- cut(1-p2,breaks=cutpts,labels=FALSE)
   T <- test.dat$T.use
@@ -38,8 +43,10 @@ cNRI <- function(p1,p2,cutpts,test.dat,t) {
 
   nri.e <- (n.u*p.KM.u - n.d*p.KM.d)/(n*p.KM)
   nri.ne <- (n.d*(1-p.KM.d) - n.u*(1-p.KM.u))/(n*(1-p.KM))
+	wt.e <- class_wt[1]
+	wt.ne <- class_wt[2]
   
-  c(cNRI.events=nri.e,cNRI.nonevents=nri.ne,cNRI=nri.e+nri.ne)
+  c(cNRI.events=nri.e,cNRI.nonevents=nri.ne,cNRI=wt.e*nri.e+wt.ne*nri.ne)
 }
 
 ## Harrell's C-index
