@@ -6,6 +6,8 @@ setwd("//hifs00.ahc.umn.edu/Data/Carlson/Portal")
 dat.base <- "Data/DataLock/DataLockv2.3.1/"
 source("C:\\Users\\bstvock\\Documents\\research\\IPCW_machine_learning\\ML-for-censored-data\\code\\IPCW_fns.R")
 #source("C:/Users/Julian/Google Drive/iPredict/manuscripts/ML-for-censored-data/code/IPCW_fns_complete.R")
+#source("C:/Users/Julian/Google Drive/iPredict/manuscripts/ML-for-censored-data/code/model-evaluation-metrics.R")
+source("C:\\Users\\bstvock\\Documents\\research\\IPCW_machine_learning\\ML-for-censored-data\\code\\model-evaluation-metrics.R")
 
 # libraries used
 library(data.table)
@@ -85,21 +87,26 @@ pRP.zero <- rpart_functions(varnms = varnms_a, cens_method = "ZERO", train.dat =
 	test.dat = HP.test, lossmat = lossmat, split = "information", cp = 0.00001, minbucket = 100)
 pRP.disc <- rpart_functions(varnms = varnms_a, cens_method = "DISCARD", train.dat = HP.train, 
 	test.dat = HP.test, lossmat = lossmat, split = "information", cp = 0.00001, minbucket = 100)
+pRP.split <- rpart_functions(varnms = varnms_a, cens_method = "SPLIT", train.dat = HP.train, 
+	test.dat = HP.test, lossmat = lossmat, split = "information", cp = 0.00001, minbucket = 100)
 
 #  Logistic Regression Models
 pLR <- as.vector(logistic_functions(varnms_a, "IPCW", HP.train, HP.test))
 pLR.zero <- as.vector(logistic_functions(varnms_a, "ZERO", HP.train, HP.test))
 pLR.disc <- as.vector(logistic_functions(varnms_a, "DISCARD", HP.train, HP.test))
+pLR.split <- as.vector(logistic_functions(varnms_a, "SPLIT", HP.train, HP.test))
 
 #  Generalized Additive Models
 pGAM <- GAM_functions(varnms_fixed, varnms_smooth, "IPCW", HP.train, HP.test)
 pGAM.zero <- GAM_functions(varnms_fixed, varnms_smooth, "ZERO", HP.train, HP.test)
 pGAM.disc <- GAM_functions(varnms_fixed, varnms_smooth, "DISCARD", HP.train, HP.test)
+pGAM.split <- GAM_functions(varnms_fixed, varnms_smooth, "SPLIT", HP.train, HP.test)
 
-#  kNN Models
+◘#  kNN Models
 pkNN <- knn_functions(varnms_stand, k = 500, "IPCW", dist_method = "mahalanobis", HP.train, HP.test)
 pkNN.zero <- knn_functions(varnms_stand, k = 500, "ZERO", dist_method = "mahalanobis", HP.train, HP.test)
 pkNN.disc <- knn_functions(varnms_stand, k = 500, "DISCARD", dist_method = "mahalanobis", HP.train, HP.test)
+pkNN.split <- knn_functions(varnms_stand, k = 500, "SPLIT", dist_method = "mahalanobis", HP.train, HP.test)
 
 # Cox model
 fmla <- as.formula(paste0("Surv(T.use,C.use)~",paste0(varnms_a,collapse="+")))
@@ -113,16 +120,52 @@ pCPH <- survfit(Cox.train,HP.test[,varnms_a],se.fit=FALSE,conf.type="none")$surv
 
 risk.cutpts = c(Inf,1-c(0.05,0.1,0.15,0.2),-Inf)
 library(survMisc)
-#source("C:/Users/Julian/Google Drive/iPredict/manuscripts/ML-for-censored-data/code/model-evaluation-metrics.R")
-source("C:\\Users\\bstvock\\Documents\\research\\IPCW_machine_learning\\ML-for-censored-data\\code\\model-evaluation-metrics.R")
 
-ML.preds <- list(pRP, pRP.zero, pRP.disc, pLR, pLR.zero, pLR.disc, pGAM, pGAM.zero, pGAM.disc, 
-	pkNN, pkNN.zero, pkNN.disc, pCPH)
+ML.preds <- list(pRP, pRP.zero, pRP.disc, pRP.split, pLR, pLR.zero, pLR.disc, pLR.split, 
+	pGAM, pGAM.zero, pGAM.disc, pGAM.split, pkNN, pkNN.zero, pkNN.disc, pkNN.split, pCPH)
 ML.wellcalib <- list(pRP, pLR, pGAM, pkNN, pCPH)
 
 pred.rate <- 100*(1-unlist(lapply(ML.preds,mean)))
 calib <- unlist(lapply(ML.preds,calib.stat,cutpts=risk.cutpts,test.dat=HP.test))
 c.index <- unlist(lapply(ML.preds,Cindex,test.dat=HP.test))
+
+# Calibration and C-index Tables
+rownms <- c(as.vector(outer(c("IPCW-", "Zero-", "Discard-", "Split-"), c("Tree", "Logistic", "GAM", "k-NN"), 
+	paste0)), "Cox")
+#rownms <- c(rownms[1:6], "Logistic-Split", rownms[7:13])
+colnms <- c("Predicted event rate (%)", "Calibration", "C-Index")
+results.tab <- data.frame(pred.rate, calib, c.index)
+rownames(results.tab) <- rownms
+colnames(results.tab) <- colnms
+
+print( xtable(results.tab, align= "lccc",digits = c(0, 2, 2, 3)),
+       hline.after=c(3, 6, 9) )
+
+## Calibration Plots
+
+# Recursive Partitioning
+calib.plot(ML.preds[1:4], cutpts=risk.cutpts, test.dat=HP.test, 
+	main.title = "Calibration of Recursive Partition Models", pch.use = 16:19, 
+	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
+	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"), legend.loc = "topright")
+
+# Logistic Regression
+calib.plot(ML.preds[5:8], cutpts=risk.cutpts, test.dat=HP.test, 
+	main.title = "Calibration of Logistric Regression Models", pch.use = 16:19, 
+	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
+	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"))
+
+# Generalized Additive Models
+calib.plot(ML.preds[9:12], cutpts=risk.cutpts, test.dat=HP.test, 
+	main.title = "Calibration of Generalized Additive Models", pch.use = 16:19, 
+	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
+	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"))
+
+# kNN Models
+calib.plot(ML.preds[13:16], cutpts=risk.cutpts, test.dat=HP.test, 
+	main.title = "Calibration of k-Neartest Neighbor", pch.use = 16:19, 
+	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
+	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"))
 
 ### Compute the cNRI
 
@@ -149,17 +192,6 @@ colnames(weight.c.nri) = c.nri.nms
 
 ### Prepare results tables
 
-### Calibration and C-index
-rownms <- c(as.vector(outer(c("IPCW-", "Zero-", "Discard-"), c("Tree", "Logistic", "GAM", "k-NN"), 
-	paste0)), "Cox")
-colnms <- c("Predicted event rate (%)", "Calibration", "C-Index")
-results.tab <- data.frame(pred.rate, calib, c.index)
-rownames(results.tab) <- rownms
-colnames(results.tab) <- colnms
-
-
-print( xtable(results.tab, align= "lccc",digits = c(0, 2, 2, 3)),
-       hline.after=c(3, 6, 9) )
 
 ### Net reclassification
 colnms <- c("cNRI (Events)", "cNRI (Non-Events)", "cNRI (Overall)")
