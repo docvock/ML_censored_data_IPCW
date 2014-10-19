@@ -21,6 +21,7 @@ library(xtable) # create tables for latex
 library(caret)
 library(mvtnorm) 
 library(survMisc)
+quantile <- stats::quantile
 
 #  Read the data
 HP.imp <- fread(paste0(dat.base,"Data_ver-2.3.1_imputed.csv"),verbose=TRUE)
@@ -33,29 +34,15 @@ HP <- mutate(HP,
 	Has_Diab_f = as.factor(cut(Has_Diab, breaks = c(-1,0,1), labels = FALSE)),
 	Smoking_f = as.factor(cut(Smoking, breaks = c(-1,0,1,2), labels = FALSE)),
 	SBP_Meds_f = as.factor(cut(SBP_Meds, breaks = c(-1,0,1), labels = FALSE)),
-#	gender_SBP_Meds = as.factor(ifelse(gender==1 & SBP_Meds == 1, 1,
-#		ifelse(gender == 0 & SBP_Meds == 1, 2,
-#			ifelse(gender == 1 & SBP_Meds == 0, 3, 4)))),
 	BMI_f = cut(BMI, breaks = c(0, 25, 30, 35, 40, 100), labels = FALSE),
 	age_f = cut(age, breaks = c(0, 50, 60, 70, 80, 110), labels = FALSE),
 	SBP = pmin(SBP, quantile(SBP, p=c(0.995))),
 	HDL = pmin(HDL, quantile(HDL, p=c(0.995))),
 	TC = pmin(TC, quantile(TC, p=c(0.995))),
-#	log_age = log(age),
-#	log_BMI = log(BMI),
 	log_SBP = log(SBP),
 	log_HDL = log(HDL),
 	log_TC = log(TC),	
-#	gender_s = scale(gender), 
-#	age_s = scale(age),
-#	SBP_s = scale(SBP),
-#	BMI_s = scale(BMI),
-#	HDL_s = scale(HDL),
-#	TC_s = scale(TC),
 	Smoking_bin = ifelse(Smoking == 1, 1, 0)
-#	Has_Diab_s = scale(Has_Diab),
-#	Smoking_s = scale(Smoking),
-#	SBP_Meds_s = scale(SBP_Meds)
 	)
 
 # Time horizon for prediction in years
@@ -64,7 +51,6 @@ SURVTIME <- 5
 HP <- mutate(HP, T.use = DaysToEvent_Fram, C.use = CVDEvent_Fram, 
 	eventsurv.ind = as.factor(C.use == 1 & T.use <= (SURVTIME*365)))
 
-#set.seed(1101985)
 set.seed(1281985)
 frac.train <- 0.75
 train.set <- sample(1:nrow(HP), floor(frac.train*nrow(HP)), replace=FALSE)
@@ -75,16 +61,8 @@ HP.test <- data.frame(HP[test.set,])
 
 #  Features to use in analysis
 varnms <- c("gender_f", "age", "SBP", "BMI", "HDL", "TC", "Has_Diab_f", "Smoking_f", "SBP_Meds_f")
-#varnms_a <- c("gender_f", "age", "SBP", "BMI", "HDL", "TC", "Has_Diab_f", "Smoking", "SBP_Meds_f")
-#intx.varnms <- c(varnms,paste0("gender_f:",varnms[-1]),"SBP:SBP_Meds_f","gender_f:SBP:SBP_Meds_f")
-#varnms_fixed <- c("gender_f", "Has_Diab_f", "Smoking_f", "SBP_Meds_f", "gender_f:Has_Diab_f", 
-#	"gender_f:Smoking_f", "gender_f:SBP_Meds_f")
-#varnms_smooth <- cbind(c("age", "SBP", "BMI", "HDL", "TC"),
-#	c("gender_f", "gender_SBP_Meds", "gender_f", "gender_f", "gender_f"))
 varnms_fixed <- c("gender_f", "Has_Diab_f", "Smoking_f", "SBP_Meds_f")
 varnms_smooth <- c("age", "SBP", "BMI", "HDL", "TC")
-#varnms_stand <- c("gender_s", "age_s", "SBP_s", "BMI_s", "HDL_s", "TC_s", "Has_Diab_s", 
-#	"Smoking_s", "SBP_Meds_s")
 varnms_stand <- c("gender", "age", "SBP", "BMI", "HDL", "TC", "SBP_Meds", "Has_Diab",
 	"Smoking_bin")
 
@@ -100,6 +78,9 @@ HP.train <- mutate(HP.train, wts = ifelse(T.use < (SURVTIME*365) & C.use==0, 0,
 
 # Risk Cut-Offs (used in CV)
 risk.cutpts = c(Inf,1-c(0.05, 0.1, 0.15, 0.20),-Inf)
+
+#  Time needed to train all models
+start <- proc.time()
 
 #  Recursive Partitioning Models
 pRP <- rpart_functions(varnms, "IPCW", train.dat = HP.train, test.dat = HP.test, myseed = 1101985,
@@ -155,15 +136,16 @@ ind.surv <- max(which(p1$time<=SURVTIME*365))
 
 pCPH <- survfit(Cox.train,HP.test[,varnms],se.fit=FALSE,conf.type="none")$surv[ind.surv,]
 
+#  Time needed to train all models
+proc.time()-start
+
 #######  Compute calibration and reclassification statistics
 
-risk.cutpts = c(Inf,1-c(0.05, 0.1, 0.15, 0.20),-Inf)
+#risk.cutpts = c(Inf,1-c(0.05, 0.1, 0.15, 0.20),-Inf)
 
 ML.preds <- list(pRP, pRP.zero, pRP.disc, pRP.split, pLR, pLR.zero, pLR.disc, pLR.split, 
 	pGAM, pGAM.zero, pGAM.disc, pGAM.split, pkNN, pkNN.zero, pkNN.disc, pkNN.split, 
 	pBayes, pBayes.zero, pBayes.disc, pBayes.split, pCPH)
-
-#ML.wellcalib <- list(pRP, pLR, pGAM, pkNN, pBayes, pCPH)
 
 pred.rate <- 100*(1-unlist(lapply(ML.preds,mean)))
 calib <- unlist(lapply(ML.preds,calib.stat,cutpts=risk.cutpts,test.dat=HP.test))
@@ -179,7 +161,7 @@ rownames(results.tab) <- rownms
 colnames(results.tab) <- colnms
 
 print( xtable(results.tab, align= "lccc",digits = c(0, 2, 2, 3)),
-       hline.after=c(3, 6, 9) )
+       hline.after=c(4, 8, 12, 16, 20) )
 
 ## Calibration Plots
 

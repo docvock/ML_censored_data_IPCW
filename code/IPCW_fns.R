@@ -224,9 +224,6 @@ GAM_functions <- function(varnms_fixed, varnms_smooth, cens_method = "IPCW", tra
 	
 	quantile <- stats::quantile
 	train.dat$eventsurv <- ifelse(train.dat$eventsurv.ind==TRUE, 1, 0)
-	#fmla <- as.formula(paste0(c(paste0("eventsurv~", paste0(varnms_fixed, collapse="+")),
-	#	paste0(paste("s(", varnms_smooth[, 1],", by = ", varnms_smooth[, 2], ")", sep = ""), 
-	#		collapse = "+")), collapse = "+"))
 	fmla <- as.formula(paste0(c(paste0("eventsurv~", paste0(varnms_fixed, collapse="+")),
 		paste0(paste("s(", varnms_smooth,")", sep = ""), 
 			collapse = "+")), collapse = "+"))
