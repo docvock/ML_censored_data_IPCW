@@ -65,12 +65,12 @@ calib.stat <- function(p, cutpts, test.dat, verbose = FALSE) {
     S.KM <- calcSurv(Surv(test.dat$T.use[ind], test.dat$C.use[ind]))
     ind.surv <- max(which(S.KM$t <= (SURVTIME*365)))
     p.KM <- S.KM$SKM[ind.surv]
-    ##print(c(cutpts[f],p.KM,mean(p[ind],na.rm=TRUE),sqrt(S.KM$SKMV[ind.surv])))
+    if (verbose == TRUE) {
+    	print(c(cutpts[f],p.KM,mean(p[ind],na.rm=TRUE),sqrt(S.KM$SKMV[ind.surv]),
+    		(mean(p[ind], na.rm = TRUE) - p.KM)^2 / S.KM$SKMV[ind.surv]))
+    }
     (mean(p[ind], na.rm = TRUE) - p.KM)^2 / S.KM$SKMV[ind.surv]
   })
-  if (verbose == TRUE) {
-  	print(lev.stats)
-  }
   calib.stat <- (sum(lev.stats, na.rm=TRUE))
   return(calib.stat)
 }
