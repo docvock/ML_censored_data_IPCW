@@ -63,3 +63,4 @@ code/knit-test.Rnw
 code/knit-test.tex
 *.dvi
 *.ps
+.Rproj.user

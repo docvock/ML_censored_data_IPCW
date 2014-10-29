@@ -22,6 +22,7 @@ library(caret)
 library(mvtnorm) 
 library(survMisc)
 quantile <- stats::quantile
+cancor <- stats::cancor
 
 #  Read the data
 HP.imp <- fread(paste0(dat.base,"Data_ver-2.3.1_imputed.csv"),verbose=TRUE)
@@ -30,7 +31,7 @@ HP <- subset(HP.imp, age >= 40 & Comorbidity_All == 0)
 #  Define factor variables, get standardized variabels, remove outlier for Total Cholesterol 
 HP <- mutate(HP, 
 	#TC = pmin(TC, 500), 
-	gender_f = as.factor(gender),
+	gender_f = as.factor(cut(gender, breaks = c(-1,0,1), labels = FALSE)),
 	Has_Diab_f = as.factor(cut(Has_Diab, breaks = c(-1,0,1), labels = FALSE)),
 	Smoking_f = as.factor(cut(Smoking, breaks = c(-1,0,1,2), labels = FALSE)),
 	SBP_Meds_f = as.factor(cut(SBP_Meds, breaks = c(-1,0,1), labels = FALSE)),
@@ -143,61 +144,80 @@ proc.time()-start
 
 #risk.cutpts = c(Inf,1-c(0.05, 0.1, 0.15, 0.20),-Inf)
 
-ML.preds <- list(pRP, pRP.zero, pRP.disc, pRP.split, pLR, pLR.zero, pLR.disc, pLR.split, 
-	pGAM, pGAM.zero, pGAM.disc, pGAM.split, pkNN, pkNN.zero, pkNN.disc, pkNN.split, 
-	pBayes, pBayes.zero, pBayes.disc, pBayes.split, pCPH)
+ML.preds <- list(pRP, pRP.disc, pRP.zero, pRP.split, pkNN, pkNN.disc, pkNN.zero, pkNN.split, 
+	pBayes, pBayes.disc, pBayes.zero, pBayes.split, 
+	pLR, pLR.disc, pLR.zero, pLR.split, 
+	pGAM, pGAM.disc, pGAM.zero, pGAM.split,
+	pCPH)
 
 pred.rate <- 100*(1-unlist(lapply(ML.preds,mean)))
 calib <- unlist(lapply(ML.preds,calib.stat,cutpts=risk.cutpts,test.dat=HP.test))
 c.index <- unlist(lapply(ML.preds,Cindex,test.dat=HP.test))
 
 # Calibration and C-index Tables
-rownms <- c(as.vector(outer(c("IPCW-", "Zero-", "Discard-", "Split-"), 
-	c("Tree", "Logistic", "GAM", "k-NN", "Bayes"), 
-	paste0)), "Cox")
-colnms <- c("Predicted event rate (%)", "Calibration", "C-Index")
 results.tab <- data.frame(pred.rate, calib, c.index)
-rownames(results.tab) <- rownms
+results.tab <- rbind(rep(NA, 3), results.tab[1:4, ], 
+										rep(NA, 3), results.tab[5:8, ], 
+										rep(NA, 3), results.tab[9:12, ], 
+										rep(NA, 3), results.tab[13:16, ], 
+										rep(NA, 3), results.tab[17:20, ], 
+										rep(NA, 3), results.tab[21, ])
+method <- c("\\hspace{0.5in} IPCW", "\\hspace{0.5in} Discard", "\\hspace{0.5in} Zero",  "\\hspace{0.5in} Split")
+rownms <- c("\\bf{Tree}", method, "\\bf{k-NN", method, "\\bf{Bayes}", method, "\\bf{Logistic}", 
+	method, "\\bf{GAM}", method, "\\bf{Cox}", "")
+
+#rownms <- c(as.vector(outer(c("IPCW-", "Zero-", "Discard-", "Split-"), 
+#	c("Tree", "Logistic", "GAM", "k-NN", "Bayes"), 
+#	paste0)), "Cox")
+results.tab <- data.frame(Method=rownms, results.tab)
+colnms <- c("Method", "Predicted event rate (%)", "Calibration", "C-Index")
+#rownames(results.tab) <- rownms
 colnames(results.tab) <- colnms
 
-print( xtable(results.tab, align= "lccc",digits = c(0, 2, 2, 3)),
-       hline.after=c(4, 8, 12, 16, 20) )
+print( xtable(results.tab,  
+	align= "llccc",digits = c(0, 0, 2, 2, 3)),
+  hline.after=c(0, 5, 10, 15, 20, 25), include.rownames = FALSE, sanitize.text.function = function(x){x})
 
 ## Calibration Plots
 
+pdf("C:\\Users\\bstvock\\Documents\\research\\IPCW_machine_learning\\ML-for-censored-data\\calibration_plots.pdf",
+	height = 15, width = 5)
+par(mfrow=c(5,1))
 # Recursive Partitioning
 calib.plot(ML.preds[1:4], cutpts=risk.cutpts, test.dat=HP.test, 
-	main.title = "Calibration of Recursive Partition Models", pch.use = 16:19, 
+	main.title = "Calibration of Classification Trees", pch.use = 16:19, 
 	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
-	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"), legend.loc = "topright")
-
-# Logistic Regression
-calib.plot(ML.preds[5:8], cutpts=risk.cutpts, test.dat=HP.test, 
-	main.title = "Calibration of Logistric Regression Models", pch.use = 16:19, 
-	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
-	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"))
-
-# Generalized Additive Models
-calib.plot(ML.preds[9:12], cutpts=risk.cutpts, test.dat=HP.test, 
-	main.title = "Calibration of Generalized Additive Models", pch.use = 16:19, 
-	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
-	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"))
+	legend.use = TRUE, legend.text = c("IPCW", "Discard", "Zero", "Split"), legend.loc = "bottomleft")
 
 # kNN Models
-calib.plot(ML.preds[13:16], cutpts=risk.cutpts, test.dat=HP.test, 
+calib.plot(ML.preds[5:8], cutpts=risk.cutpts, test.dat=HP.test, 
 	main.title = "Calibration of k-Neartest Neighbor", pch.use = 16:19, 
 	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
-	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"))
+	legend.use = TRUE, legend.text = c("IPCW", "Discard", "Zero", "Split"))
 
 # Bayesian Network Models
-calib.plot(ML.preds[17:20], cutpts=risk.cutpts, test.dat=HP.test, 
-	main.title = "Calibration of Bayesian Netwrok Models", pch.use = 16:19, 
+calib.plot(ML.preds[9:12], cutpts=risk.cutpts, test.dat=HP.test, 
+	main.title = "Calibration of Bayesian Network Models", pch.use = 16:19, 
 	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
-	legend.use = TRUE, legend.text = c("IPCW", "ZERO", "DISCARD", "SPLIT"))
+	legend.use = TRUE, legend.text = c("IPCW", "Discard", "Zero", "Split"))
+
+# Logistic Regression
+calib.plot(ML.preds[13:16], cutpts=risk.cutpts, test.dat=HP.test, 
+	main.title = "Calibration of Logistric Regression Models", pch.use = 16:19, 
+	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
+	legend.use = TRUE, legend.text = c("IPCW", "Discard", "Zero", "Split"))
+
+# Generalized Additive Models
+calib.plot(ML.preds[17:20], cutpts=risk.cutpts, test.dat=HP.test, 
+	main.title = "Calibration of Generalized Additive Models", pch.use = 16:19, 
+	col.use = c("black", "orange", "green", "blue"), lty.use = 1:4,
+	legend.use = TRUE, legend.text = c("IPCW", "Discard", "Zero", "Split"))
+
+dev.off()
 
 ### Compute the cNRI
 
-predmat <- data.frame(RP = pRP, LR=pLR, GAM=pGAM, kNN = pkNN, Bayes = pBayes, CPH=pCPH)
+predmat <- data.frame(Tree = pRP, kNN = pkNN, Bayes = pBayes, Logistic = pLR,  GAM = pGAM, Cox = pCPH)
 c.nri <- -combn(1:ncol(predmat),2,function(x) { 
   cNRI(p1 = predmat[, x[[1]]], p2 = predmat[, x[[2]]], cutpts = 1-risk.cutpts, test.dat = HP.test,
   	t=SURVTIME*365, class_wt = c(1, 1))
@@ -207,7 +227,6 @@ colnames(c.nri) = c.nri.nms
 
 ### Compute the weighted cNRI
 
-predmat <- data.frame(RP = pRP, LR=pLR, GAM=pGAM, kNN = pkNN, Bayes = pBayes, CPH=pCPH)
   KM <- survfit(Surv(T.use, C.use) ~ 1, data = HP.test) ## overall
   p.KM <- 1 - KM$surv[max(which(KM$time<=SURVTIME*365))] ## P(event)
 
@@ -221,11 +240,11 @@ colnames(weight.c.nri) = c.nri.nms
 ### Prepare results tables
 
 ### Net reclassification
-colnms <- c("cNRI (Events)", "cNRI (Non-Events)", "cNRI (Overall)")
-results.tab <- t(c.nri)
+colnms <- c("cNRI (Events)", "cNRI (Non-Events)", "cNRI (Overall)", "cNRI(Overall Weighted)")
+results.tab <- cbind(t(c.nri), weight.c.nri[3, ])
 colnames(results.tab) <- colnms
 
-print(xtable(results.tab, align = "lccc", digits = c(0,3,3,3)) )
+print(xtable(results.tab, align = "lcccc", digits = c(0,3,3,3,3)) )
 
 ### Weighted Net reclassification
 results.tab <- t(weight.c.nri)

@@ -428,23 +428,28 @@ Bayes_functions <- function(cens_method = "IPCW", train.dat, test.dat = NULL,
 		IPCW_design <- svydesign(id = ~ (ID), weights = ~wts_split, data = train.dat.full)
 	}
 	
-	p.age_event <- prop.table(svytable(~ eventsurv.ind + age_f, IPCW_design), 1)
+	p.gender_event <- prop.table(svytable(~ eventsurv.ind + gender_f, IPCW_design), 1)
+	p.age_gender.event <- prop.table(svytable(~ eventsurv.ind + gender_f + age_f, IPCW_design), c(1, 2))
+	#no gender needed
 	p.BMI_age.event <- prop.table(svytable(~ eventsurv.ind + age_f + BMI_f, IPCW_design), c(1, 2))
+	# no gender needed
 	p.diab_BMI.event <- prop.table(svytable(~ eventsurv.ind + BMI_f + Has_Diab_f, IPCW_design), c(1, 2))
+	# no gender needed
 	p.SBPMeds_age.BMI.diab.event <- prop.table(svytable(~ eventsurv.ind + age_f + BMI_f + Has_Diab_f + 
 		SBP_Meds_f, IPCW_design), c(1, 2, 3, 4))
+	# no gender needed
 	p.smoke_age.event <- prop.table(svytable(~ eventsurv.ind + age_f + Smoking_f, IPCW_design), c(1, 2))
 
 	if(cens_method == "IPCW") {
-		p.SBP_age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
-				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking), weights = wts, 
+		p.SBP_gender.age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
+				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking) + as.factor(gender_f), weights = wts, 
 				data = train.dat)
-		sigma_SBP <- sqrt(weighted.mean(resid(p.SBP_age.BMI.smoke.SBPMeds.event)^2, train.dat$wts))
-		p.HDL_age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab  , weights = wts, data = train.dat)
-		p.TC_age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab  , weights = wts, data = train.dat)
-		resid.HDL.TC <- cbind(resid(p.HDL_age.BMI.diab.event),resid(p.TC_age.BMI.diab.event))
+		sigma_SBP <- sqrt(weighted.mean(resid(p.SBP_gender.age.BMI.smoke.SBPMeds.event)^2, train.dat$wts))
+		p.HDL_gender.age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab  + as.factor(gender_f), weights = wts, data = train.dat)
+		p.TC_gender.age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab  + as.factor(gender_f), weights = wts, data = train.dat)
+		resid.HDL.TC <- cbind(resid(p.HDL_gender.age.BMI.diab.event),resid(p.TC_gender.age.BMI.diab.event))
 		vcov.resid.HDL.TC <- t(apply(resid.HDL.TC, 1, outer2))
 		vcov.resid.HDL.TC <- apply(vcov.resid.HDL.TC, 2, weighted.mean, train.dat$wts)
 		vcov.resid.HDL.TC <- matrix(vcov.resid.HDL.TC, nrow = 2, ncol = 2) 
@@ -453,15 +458,15 @@ Bayes_functions <- function(cens_method = "IPCW", train.dat, test.dat = NULL,
 		p.event <- 1 - p.noevent
 	}
 	if(cens_method == "ZERO") {
-		p.SBP_age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
-				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking),  
+		p.SBP_gender.age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
+				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking) + as.factor(gender_f),  
 				data = train.dat)
-		sigma_SBP <- sqrt(mean(resid(p.SBP_age.BMI.smoke.SBPMeds.event)^2))
-		p.HDL_age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab,  data = train.dat)
-		p.TC_age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab,  data = train.dat)
-		resid.HDL.TC <- cbind(resid(p.HDL_age.BMI.diab.event), resid(p.TC_age.BMI.diab.event))
+		sigma_SBP <- sqrt(mean(resid(p.SBP_gender.age.BMI.smoke.SBPMeds.event)^2))
+		p.HDL_gender.age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab + as.factor(gender_f),  data = train.dat)
+		p.TC_gender.age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab + as.factor(gender_f),  data = train.dat)
+		resid.HDL.TC <- cbind(resid(p.HDL_gender.age.BMI.diab.event), resid(p.TC_gender.age.BMI.diab.event))
 		vcov.resid.HDL.TC <- t(apply(resid.HDL.TC, 1, outer2))
 		vcov.resid.HDL.TC <- apply(vcov.resid.HDL.TC, 2, mean)
 		vcov.resid.HDL.TC <- matrix(vcov.resid.HDL.TC, nrow = 2, ncol = 2) 
@@ -470,15 +475,15 @@ Bayes_functions <- function(cens_method = "IPCW", train.dat, test.dat = NULL,
 	}
 	if(cens_method == "DISCARD") {
 		train.dat.disc <- filter(train.dat,!(T.use <= (SURVTIME*365) & C.use == 0))
-		p.SBP_age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
-				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking),  
+		p.SBP_gender.age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
+				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking) + as.factor(gender_f),  
 				data = train.dat.disc )
-		sigma_SBP <- sqrt(mean(resid(p.SBP_age.BMI.smoke.SBPMeds.event)^2))
-		p.HDL_age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab,  data = train.dat.disc )
-		p.TC_age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab,  data = train.dat.disc )
-		resid.HDL.TC <- cbind(resid(p.HDL_age.BMI.diab.event), resid(p.TC_age.BMI.diab.event))
+		sigma_SBP <- sqrt(mean(resid(p.SBP_gender.age.BMI.smoke.SBPMeds.event)^2))
+		p.HDL_gender.age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab + as.factor(gender_f),  data = train.dat.disc )
+		p.TC_gender.age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab + as.factor(gender_f),  data = train.dat.disc )
+		resid.HDL.TC <- cbind(resid(p.HDL_gender.age.BMI.diab.event), resid(p.TC_gender.age.BMI.diab.event))
 		vcov.resid.HDL.TC <- t(apply(resid.HDL.TC, 1, outer2))
 		vcov.resid.HDL.TC <- apply(vcov.resid.HDL.TC, 2, mean)
 		vcov.resid.HDL.TC <- matrix(vcov.resid.HDL.TC, nrow = 2, ncol = 2) 
@@ -486,15 +491,15 @@ Bayes_functions <- function(cens_method = "IPCW", train.dat, test.dat = NULL,
 		p.event <- 1 - p.noevent
 	}
 	if(cens_method == "SPLIT") {
-		p.SBP_age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
-				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking), weights = wts_split, 
+		p.SBP_gender.age.BMI.smoke.SBPMeds.event <- lm(log_SBP ~ eventsurv.ind + SBP_Meds_f + 
+				SBP_Meds_f*as.factor(BMI_f) + as.factor(age_f) + as.factor(Smoking) + as.factor(gender_f), weights = wts_split, 
 				data = train.dat.full)
-		sigma_SBP <- sqrt(weighted.mean(resid(p.SBP_age.BMI.smoke.SBPMeds.event)^2, train.dat.full$wts_split))
-		p.HDL_age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab  , weights = wts_split, data = train.dat.full)
-		p.TC_age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
-				Has_Diab  , weights = wts_split, data = train.dat.full)
-		resid.HDL.TC <- cbind(resid(p.HDL_age.BMI.diab.event),resid(p.TC_age.BMI.diab.event))
+		sigma_SBP <- sqrt(weighted.mean(resid(p.SBP_gender.age.BMI.smoke.SBPMeds.event)^2, train.dat.full$wts_split))
+		p.HDL_gender.age.BMI.diab.event <- lm(log_HDL ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab + as.factor(gender_f), weights = wts_split, data = train.dat.full)
+		p.TC_gender.age.BMI.diab.event <- lm(log_TC ~ eventsurv.ind + as.factor(BMI_f) + as.factor(age_f) + 
+				Has_Diab + as.factor(gender_f), weights = wts_split, data = train.dat.full)
+		resid.HDL.TC <- cbind(resid(p.HDL_gender.age.BMI.diab.event),resid(p.TC_gender.age.BMI.diab.event))
 		vcov.resid.HDL.TC <- t(apply(resid.HDL.TC, 1, outer2))
 		vcov.resid.HDL.TC <- apply(vcov.resid.HDL.TC, 2, weighted.mean, train.dat.full$wts_split)
 		vcov.resid.HDL.TC <- matrix(vcov.resid.HDL.TC, nrow = 2, ncol = 2) 
@@ -512,31 +517,33 @@ Bayes_functions <- function(cens_method = "IPCW", train.dat, test.dat = NULL,
 	pred.dat.1 <- pred.dat.0 <- pred.dat
 	pred.dat.1$eventsurv.ind <- as.factor(rep(TRUE, nrow(pred.dat))) 
 	pred.dat.0$eventsurv.ind <- as.factor(rep(FALSE, nrow(pred.dat)))
-	pred.HDL.1 <- predict(p.HDL_age.BMI.diab.event, newdata=pred.dat.1)
-	pred.HDL.0 <- predict(p.HDL_age.BMI.diab.event, newdata=pred.dat.0)
+	pred.HDL.1 <- predict(p.HDL_gender.age.BMI.diab.event, newdata=pred.dat.1)
+	pred.HDL.0 <- predict(p.HDL_gender.age.BMI.diab.event, newdata=pred.dat.0)
 
-	pred.TC.1 <- predict(p.TC_age.BMI.diab.event, newdata=pred.dat.1)
-	pred.TC.0 <- predict(p.TC_age.BMI.diab.event, newdata=pred.dat.0)
+	pred.TC.1 <- predict(p.TC_gender.age.BMI.diab.event, newdata=pred.dat.1)
+	pred.TC.0 <- predict(p.TC_gender.age.BMI.diab.event, newdata=pred.dat.0)
 
-p.X.event <- 	p.age_event[2, pred.dat$age_f] *
+p.X.event <- p.gender_event[2, pred.dat$gender_f] *
+	p.age_gender.event[cbind(2, pred.dat$gender_f, pred.dat$age_f)] *
 	p.BMI_age.event[cbind(2, pred.dat$age_f, pred.dat$BMI_f)] *	
 	p.diab_BMI.event[cbind(2, pred.dat$BMI_f, pred.dat$Has_Diab_f)] *
 	p.SBPMeds_age.BMI.diab.event[cbind(2, pred.dat$age_f, pred.dat$BMI_f, pred.dat$Has_Diab_f, 
 		pred.dat$SBP_Meds_f)] *
 	p.smoke_age.event[cbind(2, pred.dat$age_f, pred.dat$Smoking_f)] *  
-	dnorm(pred.dat$log_SBP, mean = predict(p.SBP_age.BMI.smoke.SBPMeds.event, newdata=pred.dat.1),
+	dnorm(pred.dat$log_SBP, mean = predict(p.SBP_gender.age.BMI.smoke.SBPMeds.event, newdata=pred.dat.1),
 		sd = sigma_SBP) * 
 	sapply(1:nrow(pred.dat), function(i) {
 		dmvnorm(c(pred.dat$log_HDL[i], pred.dat$log_TC[i]), 
 		c(pred.HDL.1[i], pred.TC.1[i]), sigma = vcov.resid.HDL.TC) })
 
-p.X.noevent <- 	p.age_event[1, pred.dat$age_f] *
+p.X.noevent <- 	p.gender_event[1, pred.dat$gender_f] *
+	p.age_gender.event[cbind(1, pred.dat$gender_f, pred.dat$age_f)] *
 	p.BMI_age.event[cbind(1, pred.dat$age_f, pred.dat$BMI_f)] *	
 	p.diab_BMI.event[cbind(1, pred.dat$BMI_f, pred.dat$Has_Diab_f)] *
 	p.SBPMeds_age.BMI.diab.event[cbind(1, pred.dat$age_f, pred.dat$BMI_f, pred.dat$Has_Diab_f, 
 		pred.dat$SBP_Meds_f)] *
 	p.smoke_age.event[cbind(1, pred.dat$age_f, pred.dat$Smoking_f)] *  
-	dnorm(pred.dat$log_SBP, mean = predict(p.SBP_age.BMI.smoke.SBPMeds.event, newdata=pred.dat.0),
+	dnorm(pred.dat$log_SBP, mean = predict(p.SBP_gender.age.BMI.smoke.SBPMeds.event, newdata=pred.dat.0),
 		sd = sigma_SBP) * 
 	sapply(1:nrow(pred.dat), function(i) {
 		dmvnorm(c(pred.dat$log_HDL[i], pred.dat$log_TC[i]), 
