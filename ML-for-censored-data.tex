@@ -91,7 +91,7 @@
 \markboth{D. Vock et al.}{ML with censored time-to-event data}
 
 % Title portion
-\title{Adapting machine learning techniques to censored time-to-event data: a general approach using inverse proability of censoring weighting}
+\title{Adapting machine learning techniques to censored time-to-event healthcare data: a general approach using inverse proability of censoring weighting}
 \author{DAVID M. VOCK
 \affil{Division of Biostatistics, School of Public Health, University of Minnesota}
 JULIAN WOLFSON
@@ -123,7 +123,7 @@ Models for predicting the probability of experiencing various health outcomes ov
 
 \keywords{Machine learning, censored data, electronic health data, survival analysis, inverse probability of censoring weights, risk prediction, medical decision support.}
 
-\acmformat{David M. Vock, Julian Wolfson, Sunayan Bandyopadhyay, Gediminas Adomavicius, Paul E. Johnson, Gabriela Vazquez-Benitez, and Patrick J. O'Connor, 2010. Adapting machine learning techniques to censored time-to-event data: a general approach.}
+\acmformat{David M. Vock, Julian Wolfson, Sunayan Bandyopadhyay, Gediminas Adomavicius, Paul E. Johnson, Gabriela Vazquez-Benitez, and Patrick J. O'Connor, 2014. Adapting machine learning techniques to censored time-to-event data: a general approach.}
 % At a minimum you need to supply the author names, year and a title.
 % IMPORTANT:
 % Full first names whenever they are known, surname last, followed by a period.
@@ -138,7 +138,7 @@ Models for predicting the probability of experiencing various health outcomes ov
 \begin{bottomstuff}
 This work was partially supported by NHLBI grant R01HL102144-01 and AHRQ grant R21HS017622-01.
 
-Author's addresses: TO FILL IN.
+Author's addresses: 420 Delaware Street S.E., MMC 303, Minneapolis, MN 55455
 \end{bottomstuff}
 
 \maketitle
@@ -165,7 +165,7 @@ There has been increasing interest in adapting machine learning tools to censore
 
 \subsection{Inverse probability of censoring weights (IPCW)}
 
-In this paper, we propose a general-purpose technique for mining right-censored time-to-event data using inverse probability of censoring weights (IPCW). The technique properly accounts for censoring and can be easily integrated into many existing machine learning techniques for class probability estimation, allowing sophisticated new (possibly ensemble-based) machine learning tools for censored data to be created with minimal programming effort. The advantage of our proposed approach is that it may be incorporated in any software package that allows for ``observation weights'' (also referred to as ``instance weights'' or ``case weights''). We illustrate how IPCW can be applied to create ``censoring-aware'' versions of several popular prediction methods: logistic regression, generalized additive models, Bayesian networks, binary decision trees, and k-nearest neighbors.  We also argue that traditional evaluation metrics for assessing model calibration and classification accuracy (e.g., AUC  and net reclassification improvement) may be misleading in the presence of censoring, and describe alternatives which are more appropriate for use in selecting model tuning parameters. We conclude by applying IPCW machine learning methods to predict the occurrence of cardiovascular events from electronic health data collected by a large Midwest health maintenance organization.
+In this paper, we propose a general-purpose technique for mining right-censored time-to-event data using inverse probability of censoring weights (IPCW). The technique properly accounts for censoring and can be easily integrated into many existing machine learning techniques for class probability estimation, allowing sophisticated new (possibly ensemble-based) machine learning tools for censored data to be created with minimal programming effort. The advantage of our proposed approach is that it may be incorporated in any software package that allows for ``observation weights'' (also referred to as ``instance weights'' or ``case weights''). We illustrate how IPCW can be applied to create ``censoring-aware'' versions of several popular prediction methods: logistic regression, generalized additive models, Bayesian networks, binary decision trees, and k-nearest neighbors.  We also argue that traditional evaluation metrics for assessing model calibration and classification accuracy (e.g., AUC  and net reclassification improvement) may be misleading in the presence of censoring, and describe alternatives which are more appropriate for use in selecting model tuning parameters. We conclude by applying IPCW machine learning methods to predict the occurrence of cardiovascular events from electronic health data collected by a large Midwest healthcare delivery organization.
 
 \section{Inverse probability of censoring weighting}
 \label{sect:IPCW}
@@ -244,11 +244,11 @@ To evaluate risk reclassification on test data which are subject to censoring, a
 \end{equation}
 where $E_{M_1}^{*,\uparrow}, E_{M_1}^{*,\downarrow}, E_{M_2}^{*,\uparrow}, E_{M_2}^{*,\downarrow}, n^*_E$ and $n^*_{\bar E}$ are analogous to the quantities in \eqref{eq:NRI}, but correspond to the expected number of subjects in each category, with the expectations computed using the Kaplan-Meier estimator to account for censoring.
 
-One drawback of the NRI in \eqref{eq:NRI} and \eqref{eq:cNRI} is that it weights reclassification improvement among events equal to that of non-events. While this may be reasonable in some applications, an alternative is to weight the reclassification improvement among events and non-events to the proportion of subjects experiencing the event and not experiencing the event, respectively. 
+One drawback of the NRI in \eqref{eq:NRI} and \eqref{eq:cNRI} is that it weights reclassification improvement among events equal to that of non-events. While this may be reasonable in some applications, an alternative is to weight the reclassification improvement among events and non-events to the proportion of subjects experiencing the event and not experiencing the event, respectively.
 
 
 %%%
-\section{Applying IPCW with existing machine learning techniques: 3 examples}
+\section{Applying IPCW with existing machine learning techniques: 4 examples}
 \label{sect:examples}
 
 %%
@@ -287,7 +287,7 @@ IPC-weighted logistic regression maximizes the \emph{weighted} log-likelihood
 \label{eq:logreglike-weighted}
 \end{equation}
 
-The weights are easily incorporated in standard statistical software. For example, in MATLAB, IPC weights can be used in the \texttt{weights} argument of the \texttt{glmfit} function. In R \citep{RProject}, the \texttt{weights} argument of the \texttt{glm} command can be used, or IPC weights can be specified as sampling weights in \texttt{svyglm} from the \texttt{survey} package \citep{Lumley2004}. 
+The weights are easily incorporated in standard statistical software. For example, in MATLAB, IPC weights can be used in the \texttt{weights} argument of the \texttt{glmfit} function. In R \citep{RProject}, the \texttt{weights} argument of the \texttt{glm} command can be used, or IPC weights can be specified as sampling weights in \texttt{svyglm} from the \texttt{survey} package \citep{Lumley2004}.
 
 Similarly, the IPC-weighted generalized additive logistic regression maximizes the following weighted penalized log-likelihood:
 \begin{equation}
@@ -315,58 +315,47 @@ Unlike the regression approaches described above which directly estimate $\pi(\m
 \begin{equation} \label{eq:DAGfactorsCond}
 P_{\mbf{X}|E}(\mbf{x}|e) = \prod_{j=1}^p P_{X_j|\mrm{Pa}(X_j),E}\{x_j|\mrm{Pa}(x_j),e\}
 \end{equation}
-where $\mrm{Pa}(X_j)$ are the parents of $X_j$. When $E$ is observed on all subjects (i.e., there is no censoring), the maximum likelihood estimate of $P_E(e)$ is straightforward:
-\begin{equation}\label{eq:PofE}
-{\hat{P}}_E(e) = \frac{1}{n} \sum_{i=1}^n \indicator{E_i=e}.
-\end{equation}
+where $\mrm{Pa}(X_j)$ are the parents of $X_j$. When $E$ is observed on all subjects (i.e., there is no censoring), the maximum likelihood estimate of $P_E(e)$ is straightforward, ${\hat{P}}_E(e) = \frac{1}{n} \sum_{i=1}^n \indicator{E_i=e}.$
 
 Several approaches have been proposed to modeling the terms $P_{X_j|\mrm{Pa}(X_j),E}\{x_j|\mrm{Pa}(x_j),e\}$. For example, a common strategy is to construct a regression model to link the values of continuous parent nodes of $X_j$ to the mean of $X_j$. In many applications, continuous covariates are discretized to allow us to learn the joint density of $P_{\mathbf{X}|E}(\mathbf{x}|e)$ nonparametrically and more easily. In the motivating example that we consider, all parent nodes are discrete (or have been discretized) which simplifies the modeling considerably. If the $j^{th}$ feature $X_j$ is discrete, then we can estimate $P_{X_j|\mrm{Pa}(X_j),E}\{x_j|\mrm{Pa}(x_j),e\}$ by computing the proportion of observations in each unique state of $\mbf{X}_j$ separately for each level of $\mrm{Pa}(X_j)$ and each level of $E$, i.e.,
-
 \begin{equation} \label{PofZ}
 {\hat{P}}_{X_j|\mrm{Pa}(X_j),E}\{x_j|\mrm{Pa}(x_j),e\} = \frac{{\hat{P}}_{X_j,\mrm{Pa}(X_j),E}\{x_j,\mrm{Pa}(x_j),e\}}{ {\hat{P}}_{\mrm{Pa}(X_j),E}\{\mrm{Pa}(x_j), e\} } =
 \frac{\frac{1}{n}\sum_{i=1}^n \indicatorMed {X_{ij}=x_{j}, \mrm{Pa}(X_{ij})=\mrm{Pa}(x_{j}), E_i=e}}{\frac{1}{n} \sum_{i=1}^n \indicatorMed { \mrm{Pa}(X_{ij})=\mrm{Pa}(x_j), E_i=e}},
 \end{equation}
-where again $i$ indexes the subject. For the continuous components, one can model the density of $X_j$ given $\mrm{Pa}(X_j)$ and $E$ as a mixture of $M$ multivariate normal densities  conditional on the levels of $\mrm{Pa}(X_j)$:
-\begin{equation}\label{eq:JoinDistComps2}
-P_{\mbf{X}_j|\mrm{Pa}(X_j),E}(\mbf{x}_j|\mrm{Pa}(x_j),e)=\sum_{m=1}^M \rho_{j,m,\mrm{Pa}(x_j),e} \phi \left\{ \Sigma^{-1/2}_{j,m,\mrm{Pa}(x_j),e} ( x_j - \mu_{j,m,\mrm{Pa}(x_j),e}) \right \},
-\end{equation}
-where $\phi(\cdot)$ is the density function of a standard normal random variable, $\mu_{j,m,\mrm{Pa}(x_j),e}$ and $\Sigma_{j,m,\mrm{Pa}(x_j),e}$ are the mean and variance matrix of $\mbf{X}_j$ given $\mrm{Pa}(X_j)=\mrm{Pa}(x_j)$ and $E=e$ for the $m^{th}$ multivariate normal density in the mixture, and $\rho_{j,m,\mrm{Pa}(x_j),e}$ are the mixing parameters where $\sum_{m=1}^M \rho_{j,m,z_j,e} = 1$.
-
-For a fixed number of mixing components $M$ and given $E=e$ and $\mrm{Pa}(X_j)=\mrm{Pa}(x_j)$, a standard expectation maximization (EM) algorithm \citep{dempster1977maximum} can be used to solve for the maximum likelihood estimators of the mean, variance, and mixing parameters. In this well-studied Gaussian mixture problem, it is possible to derive explicit update formulas for both mixing and distributional parameters so that the ``E-step'' and ``M-step'' are performed simultaneously. In particular,
+where again $i$ indexes the subject. For the continuous components, one typically models the density of $X_j$ given $\mrm{Pa}(X_j)$ and $E$ using a normal density. If the number of parents is small, then one could estimate a separate mean and variance parameter for each level of $\mrm{Pa}(X_j)$ and each level of $E$. In this case the maximum likelihood estimators of the mean, $\mu_{j,m,\mrm{Pa}(x_j),e}$, and variance, $\Sigma_{j,m,\mrm{Pa}(x_j),e}$, given parents $\mrm{Pa}(x_j)$ and event status $e$  are given by
 \begin{eqnarray} \label{eq:EMupdate}
-\mu_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)} &=& \frac{ \sum_{i=1}^n p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)} X_{ij} } {\sum_{i=1}^n p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)} } \\ \nonumber
-\Sigma_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)} &=&\frac{ \sum_{i=1}^n p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)} (X_{ij}- \mu_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)}) (X_{ij}- \mu_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)})^T  } {\sum_{i=1}^n p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)} } \\ \nonumber
-\rho_{j,m,\mrm{Pa}(x_j),e}  &=& \frac{\sum_{i=1}^n p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)} } {\sum_{i=1}^n \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_{ij}), E_i=e} },
+\mu_{j,\mrm{Pa}(x_j),e} &=& \frac{ \sum_{i=1}^n  X_{ij} } {\sum_{i=1}^n \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_{ij}), E_i=e} } \\ \nonumber
+\Sigma_{j,\mrm{Pa}(x_j),e} &=&\frac{ \sum_{i=1}^n (X_{ij}- \mu_{j,\mrm{Pa}(x_j),e}) (X_{ij}- \mu_{j,\mrm{Pa}(x_j),e})^T  } {\sum_{i=1}^n \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_{ij}), E_i=e} }, \\ \nonumber
 \end{eqnarray}
-where $p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)} = \mathrm{E}_{\theta^{(\nu)}} \{I_{j,m,\mrm{Pa}(x_j),e} |\mbf{X}_{ij},E_i,\mrm{Pa}(X_j)\} \times \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_{ij}), E_i=e}$ and $I_{j,m,\mrm{Pa}(x_j),e}$ is the (latent) mixing indicator.  Additional details of the algorithm can be found in \citet{Bilmes_1998}. The choice of $M$ is discussed below.
 
-If the number of parent nodes is large (or the nodes have several levels) there may be few observations in same combinations of $\mrm{Pa}(X_j)$. Therefore, we may obtain more efficient estimators of the density of $X_j|\mrm{Pa}(X_j)$ by using a regression model.  
+If the number of parent nodes is large (or the nodes have several levels) there may be few observations in same combinations of $\mrm{Pa}(X_j)$. Therefore, we may obtain more efficient estimators of the density of $X_j|\mrm{Pa}(X_j), E$ by using a regression model. In particular, we might assume that the mean of the conditional density of $X_j$ given $\mrm{Pa}(X_j)$ and $E$ is related to the levels of the parent nodes and event status through an additive model and that the conditional variance is constant across all levels $\mrm{Pa}(X_j)$ and $E$. For example, if the $m_j$ parents of $X_j$ are denoted by $PX_{j1}, \ldots PX_{j,m_j}$ and the $k^{th}$ parent has $p_k$ levels denoted generically as $1,\ldots, p_k$ (recall that in our application the parents are discrete), the we could assume that $X_j|\mrm{Pa}(X_j), E$ has mean $\beta_{0j} + \sum_{k=1}^{m_j} \sum_{l=1}^{p_k-1} \beta_{jkl} \indicator{PX_{k} = l}$ and that the conditional variance $\sigma^2_j$ is constant across all levels of the parents. Then the log-likelihood takes the form which can be solved to obtain the maximum likelihood estimators of $\beta_j = [\beta_{0j},\{\beta_{jkl}\}_{k=1,\ldots,m_j,l=1,\ldots,p_k}]$ and $\sigma^2_j$.
+
+\begin{equation}
+\ell(\bbeta_j, \sigma^2_j; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \left( \frac{-1}{2\sigma_j^2}\left[ X_{ij}-\{\beta_{0j} + \sum_{k=1}^{m_j} \sum_{l=1}^{p_k-1} \beta_{jkl} \indicator{PX_{k} = l}\}\right]^2 -\frac{1}{2}\log(2\pi\sigma^2_j) \right),
+\label{eq:logreglike2}
+\end{equation}
 
 \subsubsection{IPC-weighted Bayesian networks}
 
-To fit the Bayesian network using IPCW, we make the following modifications.  We first estimate IPC weights $\omega_j$ as described in Section \ref{sect:IPCWeights}. We can obtain the IPCW maximum likelihood estimator of $P_E(e)$ using the following weighted mean
-\begin{equation}
-{\hat{P}}_E(e) = \frac{1}{n} \sum_{i=1}^n \omega_i \indicator{E_i=e}.
-\label{eq:PofE_IPCW}
-\end{equation}
-We note that this is equivalent to the Kaplan-Meier estimator of $P_E(e)$. Similarly, we can then obtain an IPCW maximum likelihood estimator of the distribution for the discrete variables $X_j$ separately for each level of $\mrm{Pa}(X_j)$ and each level of $E$
+To fit the Bayesian network using IPCW, we make the following modifications.  We first estimate IPC weights $\omega_j$ as described in Section \ref{sect:IPCWeights}. We can obtain the IPCW maximum likelihood estimator of $P_E(e)$ using the weighted mean ${\hat{P}}_E(e) = \frac{1}{n} \sum_{i=1}^n \omega_i \indicator{E_i=e}$. We note that this is equivalent to the Kaplan-Meier estimator of $P_E(e)$. Similarly, we can then obtain an IPCW maximum likelihood estimator of the distribution for the discrete variables $X_j$ separately for each level of $\mrm{Pa}(X_j)$ and each level of $E$
 \begin{equation}
 {\hat{P}}_{X_j|\mrm{Pa}(X_j),E}\{x_j|\mrm{Pa}(x_j),e\} = \frac{\frac{1}{n}\sum_{i=1}^n \omega_i \indicatorMed{X_{ij}=x_j, \mrm{Pa}(X_{ij}) = \mrm{Pa}(x_j), E_i=e} } {\frac{1}{n}\sum_{i=1}^n \omega_i \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_j) E_i=e} } \label{eq:PofZ_IPCW}.
 \end{equation}
-Finally, the IPCW estimator of the parameters in the mixture of Gaussian densities for the continuous variables $\mbf{Z_j}$ can be obtained using a weighted EM algorithm. The contribution of maximum likelihood where the contribution of the $i^{th}$ subject to the likelihood is weighted by $\omega_i$. The update formulas for the parameter estimates previously given in Equation~\eqref{eq:EMupdate} become
+Finally, the IPCW estimator of the parameters in the normal densities for the continuous variables $X_j$ can be obtained using a weighted maximum likelihood where the contribution of the $i^{th}$ subject to the likelihood is weighted by $\omega_i$. The formulas for the parameter estimates previously given in Equation~\eqref{eq:EMupdate} become
 \begin{eqnarray} \label{eq:EMupdate_IPCW}
-\mu_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)} &=& \frac{ \sum_{i=1}^n \omega_i  p_{i,m,\mrm{Pa}(x_j,e)}^{(\nu)} X_{ij} } {\sum_{i=1}^n p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)}\omega_i } \\ \nonumber
-\Sigma_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)} &=&\frac{ \sum_{i=1}^n \omega_i  p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)} (X_{ij}- \mu_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)}) (X_{ij}- \mu_{j,m,\mrm{Pa}(x_j),e}^{(\nu+1)})^T  } {\sum_{i=1}^n p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)}\omega_i } \\ \nonumber
-\rho_{j,m,\mrm{Pa}(x_j),e}  &=& \frac{ \sum_{i=1}^n \omega_i  p_{i,m,\mrm{Pa}(x_j),e}^{(\nu)}} {\sum_{i=1}^n \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_j),E_i=e} \omega_i},
+\mu_{j,\mrm{Pa}(x_j),e} &=& \frac{ \sum_{i=1}^n  \omega_i X_{ij} } {\sum_{i=1}^n \omega_i \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_{ij}), E_i=e} } \\ \nonumber
+\Sigma_{j,\mrm{Pa}(x_j),e} &=&\frac{ \sum_{i=1}^n \omega_i (X_{ij}- \mu_{j,\mrm{Pa}(x_j),e}) (X_{ij}- \mu_{j,\mrm{Pa}(x_j),e})^T  } {\sum_{i=1}^n \omega_i \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_{ij}), E_i=e} }. \\ \nonumber
 \end{eqnarray}
-where $p_{i,m,\mrm{Pa}(X_j),e}^{(\nu)} = E_{\theta^{(\nu)}} \{I_{j,m,\mrm{Pa}(z_j),e} |X_{ij},\mrm{Pa}(X_{ij}),E_i\} \times \indicatorMed{\mrm{Pa}(X_{ij})=\mrm{Pa}(x_j), E_i=e}$ as before.
+Similarly, the weighted log-likelihood for the regression parameters becomes:
+\begin{equation}
+\ell^{\omega}(\bbeta_j, \sigma^2_j; \mathbf{X},\mathbf{E}) = \sum_{i=1}^n \omega_i\left( -\frac{1}{2\sigma_j^2}\left[ X_{ij}-\{\beta_{0j} + \sum_{k=1}^{m_j} \sum_{l=1}^{p_k-1} \beta_{jkl} \indicator{PX_{ik} = l}\}\right]^2 -\frac{1}{2}\log(2\pi\sigma^2_j) \right),
+\label{eq:logreglike2}
+\end{equation}
 
-The weights for all subjects with $E=0$ and $V > \tau$ are $1/\hat{G}(\tau)$ so the maximum likelihood estimators for $P_{X_j|\mrm{Pa}(X_j),E}\{x_j|\mrm{Pa}(x_j),e=0\}$ are the same as in the unweighted analysis. Further details of the weighted EM algorithm are provided in \citet{fraley2012mclust}. Many software packages implementing the EM algorithm allow weights to be provided as arguments to the EM function, making the IPCW Bayesian network approach straightforward to implement.
 
-Tuning a Bayesian network for optimal performance may involve determining the network structure and/or controlling model complexity for a given structure. In the Bayesian network implementation for our data application, we consider only a single network structure which is informed by discussions with our clinical colleagues (see Figure \ref{figure:BayesNet}); however, a set of feasible structures could easily be compared on a test set or via cross-validation using the calibration and reclassification metrics described in Section \ref{sec:performanceMetrics}.
+We note that tuning a Bayesian network for optimal performance may involve determining the network structure and/or controlling model complexity for a given structure. In the Bayesian network implementation for our data application, we consider only a single network structure which is informed by discussions with our clinical colleagues (see Figure \ref{figure:BayesNet}); however, a set of feasible structures could easily be compared on a test set or via cross-validation using the calibration and reclassification metrics described in Section \ref{sec:performanceMetrics}.
 
-In the above presentation of the Bayesian Network, a parameter $M$ controls the number of mixture components used to estimate the conditional distributions of continuous features.  One could consider $M$ to be a tunable parameter, and either select a single value or, as suggested in \citet{Bandyopadhyay2014}, use a model averaging procedure to combine results across multiple values of $M$.  \citet{Bandyopadhyay2014} determines the relative weights of each model using the Bayesian Information Criteria (BIC). In settings without censoring, $BIC = -2 \log(L) + k \log(n)$ where $l$ is the likelihood evaluated at the maximum likelihood parameter estimates, $n$ is the number of subjects in the training set, and $k$ the number of (free) parameters in the model. Since IPC weights are incorporated directly into the likelihood, it is straightforward to construct an IPC-weighted BIC appropriate for censored-data settings via $BIC^\omega = -2 \log(L^\omega) + k \log(\sum_i \omega_i)$, where$L^\omega$ is the IPC-weighted likelihood given in Equation (15) of \citet{Bandyopadhyay2014}. Algorithms for learning graph structure (e.g., \citet{deCampos2011}) also often use scoring criteria such as the BIC which can be adapted to the censored data setting as described above.
-
+A more flexible modeling approach for modeling the continuous density of $X_j$ conditional on the levels of $\mrm{Pa}(X_j)$ and $E$ is to assume that the conditional density can be represented as a mixture of $M$ multivariate normal densities. We could consider $M$ to be a tunable parameter, and either select a single value or, as suggested in \citet{Bandyopadhyay2014}, use a model averaging procedure to combine results across multiple values of $M$. 
 %%
 \subsection{Decision trees}
 
@@ -380,7 +369,7 @@ where $\hat \pi(S), \hat \pi(S_L),$ and $\hat \pi(S_R)$ are respectively the sam
 \[
 \Delta I_E(S) =  \hat I_E(S) - \frac{1}{N_S} \{ N_{S_L} \hat I_E(S_L) + N_{S_R} \hat I_E(S_R) \}
 \]
-where the information in node $S$ is given by 
+where the information in node $S$ is given by
 \[
 \hat I_E(S) = - \hat \pi(S) \log \hat \pi(S) - \{1 - \hat \pi(S)\} \log\{1 - \hat \pi(S)\}
 \]
@@ -423,7 +412,7 @@ with
 \[
 \hat I^\omega_E(S) = - \hat \pi^\omega(S) \log \hat \pi^\omega(S) - \{1 - \hat \pi^\omega(S)\} \log\{1 - \hat \pi^\omega(S)\}
 \]
-and similarly for $I^\omega_E(S_L)$ and $I^\omega_E(S_R)$. 
+and similarly for $I^\omega_E(S_L)$ and $I^\omega_E(S_R)$.
 
 Once the structure of the tree has been determined, the predicted risk of a test instance with features $\mathbf{x}$ falling in terminal node $z$ is estimated as the weighted (non-parametric) maximum likelihood estimator:
 
@@ -435,7 +424,7 @@ Because of their flexibility, regression trees often overfit training data. Many
 
 \section{Statistical validity of IPCW}
 
-We briefly argue why inverse probability of censoring weighting appropriately handles censoring and leads to well-calibrated risk prediction across a variety of machine learning techniques. More formal proofs are given in \citet{Robins_2000, Bang_2000, Bang_2002, Rotnitzky_2005, Tsiatis_2006}. If there were no censoring, class probability estimates (across all the machine learning scenarios considered in this manuscript) would be obtained using some form of maximum likelihood estimator (e.g., non-parametric, penalized, etc.). For example, in logistic regression, we parameterize the log odds (i.e., $\log [\pi_i(\mathbf{X})/ \{1-\pi_i(\mathbf{x})\}]$) in terms of a linear combination $\mathbf{x}$ and any non-linear and interaction terms specified {\em{a priori}} and estimate the coefficients in the linear combination using maximum likelihood. In generalized additive logistic models,  the log odds are related to a linear combination of $\mathbf{z}$, a basis expansion of $\mbf{x}$, and regression coefficients are estimated using penalized maximum likelihood. In Bayesian networks, the continuous components of are modeled via maximum likelihood using a mixture of Gaussian densities and the discrete components are modeled non-parametrically.  Once we identify the terminal nodes in binary trees or the neighbors in k-nearest neighbors, we compute risks by taking sample averages within nodes; these averages are non-parametric maximum likelihood estimators. It has been well established that as the sample size tends to infinity and other regularity conditions hold (including the number of observations in terminal nodes and number of neighbors also increase), maximum likelihood consistently estimates the risk probability \citep{Sundberg_1972, Lehmann_1998, Loh_2008, Boos_2013}. 
+We briefly argue why inverse probability of censoring weighting appropriately handles censoring and leads to well-calibrated risk prediction across a variety of machine learning techniques. More formal proofs are given in \citet{Robins_2000, Bang_2000, Bang_2002, Rotnitzky_2005, Tsiatis_2006}. If there were no censoring, class probability estimates (across all the machine learning scenarios considered in this manuscript) would be obtained using some form of maximum likelihood estimator (e.g., non-parametric, penalized, etc.). For example, in logistic regression, we parameterize the log odds (i.e., $\log [\pi_i(\mathbf{X})/ \{1-\pi_i(\mathbf{x})\}]$) in terms of a linear combination $\mathbf{x}$ and any non-linear and interaction terms specified {\em{a priori}} and estimate the coefficients in the linear combination using maximum likelihood. In generalized additive logistic models,  the log odds are related to a linear combination of $\mathbf{z}$, a basis expansion of $\mbf{x}$, and regression coefficients are estimated using penalized maximum likelihood. In Bayesian networks, the continuous components of are modeled via maximum likelihood using a mixture of Gaussian densities and the discrete components are modeled non-parametrically.  Once we identify the terminal nodes in binary trees or the neighbors in k-nearest neighbors, we compute risks by taking sample averages within nodes; these averages are non-parametric maximum likelihood estimators. It has been well established that as the sample size tends to infinity and other regularity conditions hold (including the number of observations in terminal nodes and number of neighbors also increase), maximum likelihood consistently estimates the risk probability \citep{Sundberg_1972, Lehmann_1998, Loh_2008, Boos_2013}.
 
 Inverse probability of censoring weighted observations ``works'' by approximating the log likelihood that we would have obtained had there not been censoring. Consider the general likelihood $\ell(\bbeta; \mathbf{X},\mathbf{E}) = \tfrac{1}{n}\sum_{i=1}^n \ell_i(\beta; \mbf{X}_i, E_i)$ for the parameter $\beta$ had no observations been right-censored. By the weak law of large numbers,
 \begin{equation} \label{eq:lldconvergence}
@@ -457,12 +446,12 @@ and hence
 &=& \mathcal{E} \left \{  \ell_i(\beta; \mbf{X}_i, E_i) \right \}  \\
 \end{eqnarray*}
 
-That is, for large samples the IPCW log likelihood converges to the same quantity as the fully-observed (i.e., uncensored) likelihood. Because the difference in the IPCW and fully-observed likelihoods are (asymptotically) negligible, in large samples the IPCW approach inherits all the properties of machine learning estimators if we had full data. The above argument relies on the assumption that the censoring time $C$ is independent of the event time $T$ and all features $\mbf{X}$. In our application, most patients are censored due to the end of the study or because they disenroll from the HMO due to a change in employment, reasons unrelated to their health status (i.e., $\mbf{X}$ and $T$), so this independence assumption is reasonable. How to handle this so-called ``dependent censoring'' is a current area of research in statistics \citep{Tsiatis_2006}, and to our knowledge very little of this work has been applied in the machine learning domain.
+That is, for large samples the IPCW log likelihood converges to the same quantity as the fully-observed (i.e., uncensored) likelihood. Because the difference in the IPCW and fully-observed likelihoods are (asymptotically) negligible, in large samples the IPCW approach inherits all the properties of machine learning estimators if we had full data. The above argument relies on the assumption that the censoring time $C$ is independent of the event time $T$ and all features $\mbf{X}$. In our application, most patients are censored due to the end of the study or because they disenroll from the insurance plan due to a change in employment, reasons unrelated to their health status (i.e., $\mbf{X}$ and $T$), so this independence assumption is reasonable. How to handle this so-called ``dependent censoring'' is a current area of research in statistics \citep{Tsiatis_2006}, and to our knowledge very little of this work has been applied in the machine learning domain.
 
 \section{Example Application: Predicting cardiovascular risk using electronic health data}
 \label{sec:data}
 
-We now illustrate the application of IPC-weighted risk prediction methods to the problem of predicting the risk of a cardiovascular event from electronic health data. The data come from a healthcare system in the Midwestern United States and were extracted from the HMO Research Network Virtual Data Warehouse (HMORN VDW) associated with that system. The VDW stores data including insurance enrollment, demographics, pharmaceutical dispensing, utilization, vital signs, laboratory, census, and death records. This health care system includes both an insurance plan and a medical care network in an open system which is partially overlapping. That is, patients of the insurance plan may be served by either the internal medical care network and or by external healthcare providers, and the medical care network serves patients within and outside of the insurance plan.  Patient-members who do not visit any of the clinics and hospitals in-network do not have any medical information (e.g., blood pressure information) included in the electronic medical record (EMR) of this system. Furthermore, once the patient-member disenrolls from the HMO, the patient is right-censored as there is no longer any information on risk factors or outcomes (i.e., CV events) recorded in the EMR or insurance claims data.
+We now illustrate the application of IPC-weighted risk prediction methods to the problem of predicting the risk of a cardiovascular event from electronic health data. The data come from a healthcare system in the Midwestern United States and were extracted from the HMO Research Network Virtual Data Warehouse (HMORN VDW) associated with that system. The VDW stores data including insurance enrollment, demographics, pharmaceutical dispensing, utilization, vital signs, laboratory, census, and death records. This health care system includes both an insurance plan and a medical care network in an open system which is partially overlapping. That is, patients of the insurance plan may be served by either the internal medical care network and or by external healthcare providers, and the medical care network serves patients within and outside of the insurance plan.  Patient-members who do not visit any of the clinics and hospitals in-network do not have any medical information (e.g., blood pressure information) included in the electronic medical record (EMR) of this system. Furthermore, once the patient-member disenrolls from the insurance plan, the patient is right-censored as there is no longer any information on risk factors or outcomes (i.e., CV events) recorded in the EMR or insurance claims data.
 
 %%%
 \subsection{Defining the study population}
@@ -471,7 +460,7 @@ We now illustrate the application of IPC-weighted risk prediction methods to the
 The study population was initially selected from those enrolled in the insurance plan between 1999 and 2011 and who had at least one outpatient medical encounter at an in-network clinic. From this initial database of 448,306 subjects, an analysis population of was identified by applying the following inclusion/exclusion criteria.
 
 \begin{enumerate}
-\item To ensure sufficient time to collect baseline risk factors on subjects, the analysis was restricted to those subjects with at least one year of continuous insurance enrollment. Some of the patients were sporadically enrolled during the period of study; however, for the purpose of our analysis, we ignored gaps in enrollment less than 90 days and considered a patient-member continuously enrolled over this period. These gaps in enrollment are likely due to administrative errors or patients changing employers but still electing coverage with the same HMO.
+\item To ensure sufficient time to collect baseline risk factors on subjects, the analysis was restricted to those subjects with at least one year of continuous insurance enrollment. Some of the patients were sporadically enrolled during the period of study; however, for the purpose of our analysis, we ignored gaps in enrollment less than 90 days and considered a patient-member continuously enrolled over this period. These gaps in enrollment are likely due to administrative errors or patients changing employers but still electing coverage with the same insurance provider.
 \item We included only patients with two medical encounters in the in-network clinic with blood pressure information at least 30 days but at most 1.5 years apart, with drug coverage, and greater than 18 years of age at the end of the baseline period.
 \item Patients under the age of 40 were excluded.
 \item Subjects with pre-existing serious comorbidities other than diabetes (e.g., prior CV event, chronic kidney disease, etc.) were excluded.
@@ -479,12 +468,12 @@ The study population was initially selected from those enrolled in the insurance
 
 These criteria ensure that the analysis population consists of a diverse group of subjects at non-trivial risk of experiencing a CV event, who were treated routinely in the primary care clinic. Patients who are only infrequently treated in the emergency room or urgent care clinics (i.e., settings where patients are unlikely to be counseled about their CV risk) were not of interest in this analysis. Subjects with comorbidities were excluded because comorbidity information was recorded inconsistently and because, as a group, these subjects have an extremely high 5-year event rate and hence are of limited interest for risk prediction models because they are almost uniformly being aggressively treated to manage their cardiovascular risk. After applying the above criteria, our final analysis dataset contained 87,363 individuals.
 
-The available longitudinal data on each patient-member was divided into: (i) a \emph{baseline} period, where the risk factors were ascertained, and (ii) a \emph{follow-up} period, where we assessed whether a patient experienced a CV event (and, if so, when).  The baseline period consisted of the time between the first blood pressure reading during the enrollment period and the date of the final blood pressure reading at most 1.5 years from the first measurement.  The follow-up period for a patient begins at the end of the baseline period, referred to as the index date, and continues until either the patient experiences a CV event (defined below), the patient disenrolls from the HMO for more than 90 days, or the data capture period ends (in 2011), whichever comes first. The distribution of the follow-up periods for the resulting analysis cohort is shown in Figure~\ref{figure:followDist}, which illustrates that a large proportion of subjects' CV event times are censored prior to the end of follow-up. Figure~\ref{figure:UnknownEvents} shows that unless we consider a time horizon $\tau$ close to the index date, the $\tau$-year event status will be unknown for a substantial proportion of subjects in this cohort.
+The available longitudinal data on each patient-member was divided into: (i) a \emph{baseline} period, where the risk factors were ascertained, and (ii) a \emph{follow-up} period, where we assessed whether a patient experienced a CV event (and, if so, when).  The baseline period consisted of the time between the first blood pressure reading during the enrollment period and the date of the final blood pressure reading at most 1.5 years from the first measurement.  The follow-up period for a patient begins at the end of the baseline period, referred to as the index date, and continues until either the patient experiences a CV event (defined below), the patient disenrolls from the insurance plan for more than 90 days, or the data capture period ends (in 2011), whichever comes first. The distribution of the follow-up periods for the resulting analysis cohort is shown in Figure~\ref{figure:followDist}, which illustrates that a large proportion of subjects' CV event times are censored prior to the end of follow-up. Figure~\ref{figure:UnknownEvents} shows that unless we consider a time horizon $\tau$ close to the index date, the $\tau$-year event status will be unknown for a substantial proportion of subjects in this cohort.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.50\textwidth]{followup.pdf}
-\caption{Distribution of follow-up times, i.e., time from the end of the baseline period until the patient experiences a CV event, the patient disenrolls from the HMO for more than 90 days, or the study ends, in our entire cohort after applying inclusion/ exclusion criteria detailed in Section \ref{sect:studypop}. The number of subjects whose follow-up ends in a CV event are shown in white bars while the number whose follow-up is censored is given by the gray bars.}
+\caption{Distribution of follow-up times, i.e., time from the end of the baseline period until the patient experiences a CV event, the patient disenrolls from the insurance for more than 90 days, or the study ends, in our entire cohort after applying inclusion/ exclusion criteria detailed in Section \ref{sect:studypop}. The number of subjects whose follow-up ends in a CV event are shown in white bars while the number whose follow-up is censored is given by the gray bars.}
 \label{figure:followDist}
 \end{figure}
 
