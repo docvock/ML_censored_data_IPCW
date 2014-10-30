@@ -542,17 +542,25 @@ Subjects who experienced an event within five years were recorded as $E=1$, and 
 \item \textbf{``Split'' observations with $E$ unknown into two observations with $E=1$ and $E=0$ with weights based on marginal survival probability}. The resulting techniques, as described previously, have the suffix \emph{-Split}. \JWcomment{Need to add section describing this}
 \end{enumerate}
 
-Model performance was assessed based on the calibration and discrimination metrics described in Section \ref{sec:performanceMetrics}. To calculate the calibration statistic and cNRI, we defined five risk strata based on clinically relevant cutoffs for the risk of experiencing a cardiovascular event within 5 years: 0-5\%, 5-10\%, 10-15\%, 15-20\% and $>$ 20\% \citep{Ridker_2007}. For the cNRI, risk predictions for an individual were considered discordant between two models if the predictions fell in different ranges. All models were fitted using the open-source statistical software program R \citep{RProject}. Code is available from the first author's website, \url{https://sites.google.com/site/dmvock/}.
+Results from the Cox proportional hazards model \citep{Cox_1972} are included for comparison. The Cox model is a well-established technique for estimating survival probabilities which has been used as the basis for many CV risk prediction models, including the popular Framingham risk score \citep{DAgostino_2008}. If the Cox regression model is correctly specified, the estimated survival probabilities converge to the true probabilities as the sample size increases.
+
+Model performance was assessed based on the calibration and discrimination metrics described in Section \ref{sec:performanceMetrics}. To calculate the calibration statistic and cNRI, we defined five risk strata based on clinically relevant cutoffs for the risk of experiencing a cardiovascular event within 5 years: 0-5\%, 5-10\%, 10-15\%, 15-20\% and $>$ 20\% \citep{Ridker_2007}. For the cNRI, risk predictions for an individual were considered discordant between two models if the predictions fell in different ranges. Asymptotically, the calibration statistic has a $\chi^2$ distribution with 3 degrees of freedom, so a statistical test for the null hypothesis that a model is well-calibrated would fail to reject at a 5\% significance level if the statistic exceeds 7.81.  All models were fitted using the open-source statistical software program R \citep{RProject}. Code is available from the first author's website, \url{https://sites.google.com/site/dmvock/}.
 
 We now provide some implementation details for the various machine learning techniques.
 
-\subsection{Logistic regression}
+\subsection{Logistic and Cox regression}
 
 Logistic regression models were defined as
 \[
 \log \left( \frac{\pi(\mbf{X})}{1 - \pi(\mbf{X})} \right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots
 \]
 where $X_1, X_2, \dots$ are variables representing the (unscaled) risk factors described in Section \ref{sect:riskfactors}. The reported results are for models with a single ``main effect'' term for each predictor (i.e., no interactions or transformations); predictive performance did not markedly improve when second-order interaction terms were included (data not shown). Models were fitted using the \texttt{glm} function in R; IPC weights were incorporated using the \texttt{weights} argument.
+
+The Cox model specifies the relationship between the risk factors and the hazard function $\lambda(t;\mathbf{X}) = f_T(t) / S(t)$, where $f_T$ is the density function and $S$ the survivor function of $T$. Here, we take 
+\[
+\lambda(t;\mathbf{X}) = \lambda_0(t) \exp(\beta_1 X_1 + \beta_2 X_2 + \dots)
+\]
+where the risk factors $X_1, X_2, \dots$ are the same as for the logistic regression model. The resulting model is fairly similar to the one used to compute the Framingham risk score, providing an established standard against which to compare our models' calibration and reclassification performance. 
 
 \subsection{Bayesian networks}
 
@@ -576,7 +584,7 @@ Classification trees were built using the \texttt{rpart} package in R, which imp
 
 The full training dataset consists of 65,522 patients (75\%) drawn at random from the analysis cohort. 52\% were censored prior to five years, so that \emph{-Discard} models were trained on 31,345 subjects. The performance of all models is evaluated based on the risk predictions of the remaining 21,841 patients not included in any training set. 
 
-\begin{table}[ht]
+\begin{table}[h]
 \centering
 \tbl{Calibration statistic and C-index of versions of classification trees ({\em{Tree-}}), k-nearest neighbors ({\em{k-NN-}}), Bayesian network models ({\em{Bayes-}}), logistic regression ({\em{Logistic-}}), generalized additive models ({\em{GAM-}}), and Cox proportional hazards model ({\em{Cox}}) evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic $K$; {\em{C-index}}: Concordance index;  \label{table:calib-cindex} }{%
 \begin{tabular}{lccc}
@@ -620,9 +628,18 @@ The full training dataset consists of 65,522 patients (75\%) drawn at random fro
   }
 \end{table}
 
-Table \ref{table:calib-cindex} shows how different approaches to handling censored observations affect the predicted event rate, calibration statistic, and C-index of the machine learning techniques described in Section \ref{sect:examples}. Results from the Cox proportional hazards model \citep{Cox_1972}, which has been used as the basis for most risk prediction model are included for comparison. It is clear from Table~\ref{table:calib-cindex} that the \emph{-Discard}, \emph{-Zero}, and \emph{-Split} variants of each technique are poorly calibrated; as expected, the \emph{-Discard} approaches  yielding biased estimates of both the overall and subgroup-specific risks. The amount of improvement in reclassification performance due to using IPCW is technique-dependent; C-index is better for \emph{Tree-IPCW} than \emph{Tree-Zero} and \emph{Tree-Discard}, but there is no apparent effect for logistic regression.
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.45\textwidth]{calibration_plots.pdf}
+	\caption{Test.}
+	\label{figure:calib}
+\end{figure*}
 
-\begin{table}[ht]
+Table \ref{table:calib-cindex} shows how different approaches to handling censored observations affect the predicted event rate, calibration statistic, and C-index of the techniques described in Section \ref{sect:examples}. Figure \ref{figure:calib} displays calibration plots which compare predicted to empirical (computed from Kaplan-Meier) risks across bins defined by the predicted risk. From Table~\ref{table:calib-cindex} and Figure \ref{figure:calib}, it is clear that the \emph{-Discard}, \emph{-Zero}, and \emph{-Split} variants of each technique are poorly calibrated. As expected, the \emph{-Discard} and \emph{-Split} approaches over-estimate risk and the \emph{-Zero} approaches underestimate it, both overall and within subgroups. The \emph{-IPCW} versions are generally well-calibrated, with predicted event rate and calibration similar to the Cox model. Reclassification performance is not dramatically affected by the way in which censoring is handled, with small gains (change in C-index of $< 0.005$) in most techniques due to IPCW. 
+
+Table \ref{table:cNRI} compares the net reclassification improvement for the IPCW versions of various techniques, along with the Cox model. We do not consider cNRIs for the \emph{-Discard}, \emph{-Zero} and \emph{-Discard} variants as recent papers \citep{Pepe_2011} have shown that the NRI can be a very misleading statistic when comparing poorly calibrated models. In almost all cases, reclassification performance as measured by cNRI is similar across the techniques, which is consistent with the C-index results in Table \ref{table:calib-cindex}.
+
+\begin{table}[h]
 	\centering
 	\tbl{Net reclassification for events, non-events, and overall using classification tree, k-nearest neighbors, Bayesian networks, logistic regression, and generalized additive models with IPC weighting and Cox proportional hazards model evaluated on the hold-out test set. Positive numbers indicate that technqiue on the left correctly reclassifies subjects more frequently than the technique on the right.  \label{table:cNRI} }{
 \begin{tabular}{lcccc}
@@ -658,12 +675,7 @@ Table \ref{table:calib-cindex} shows how different approaches to handling censor
 	}
 \end{table}
 
-\begin{figure*}[h]
-\centering
-\includegraphics[width=0.45\textwidth]{calibration_plots.pdf}
-\caption{Test.}
-\label{figure:BayesNet}
-\end{figure*}
+While the machine learning techniques we illustrated did not substantially outperform the Cox model, we note that in the context of CV risk prediction the Cox model sets a high standard as with the given risk factors it has been shown repeatedly to have excellent calibration and reclassification performance \JWcomment{JWcomment}.  However, the IPCW technique is applicable to a wide range of situations where follow-up data are censored and the Cox model may not perform as well as more flexible machine learning techniques.
 
 \section{Discussion}
 
