@@ -534,13 +534,13 @@ Cardiovascular events were defined as the first recorded stroke, myocardial infa
 
 Subjects who did (did not) experience an event within 5 years of the baseline period were assigned $\delta =1$ ($\delta=0$). Those who experienced an event within five years were recorded as $E=1$, and those with at least 5 years of event-free follow-up were recorded as $E=0$.  We applied and evaluated three variants of each of the machine learning techniques described in Section \ref{sect:examples} to our data. The variants differ in their handling of subjects who were censored before accruing 5 years of follow-up (for whom $E$ is unknown):
 \begin{enumerate}
-\item \textbf{Set $E=0$ if $E$ is unknown}. Techniques using this strategy are denoted with the prefix \emph{Zero-}.
-\item \textbf{Discard observations with $E$ unknown}. Techniques using this strategy are given the prefix \emph{Discard-}.
-\item \textbf{Use IPCW on observations with $E$ known}. The resulting techniques, as described in Section \ref{sect:examples}, have the prefix \emph{IPCW-}.
-\item \textbf{Split observations with $E$ unknown into two observations with $E=1$ and $E=0$ with weights based on marginal survival probability}. The resulting techniques, as described previously, have the prefix \emph{Split-}. \JWcomment{Need to add section describing this}
+\item \textbf{Set $E=0$ if $E$ is unknown}. Techniques using this strategy are denoted with the suffix \emph{-Zero}.
+\item \textbf{Discard observations with $E$ unknown}. Techniques using this strategy are given the suffix \emph{-Discard}.
+\item \textbf{Use IPCW on observations with $E$ known}. The resulting techniques, as described in Section \ref{sect:examples}, have the suffix \emph{-IPCW}.
+\item \textbf{Split observations with $E$ unknown into two observations with $E=1$ and $E=0$ with weights based on marginal survival probability}. The resulting techniques, as described previously, have the suffix \emph{-Split}. \JWcomment{Need to add section describing this}
 \end{enumerate}
 
-Model performance was assessed based on calibration (as described in Section \ref{sec:calibration}) and discrimination metrics, i.e., the C-index and cNRI (as described in Sections \ref{sec:cIndex} and \ref{sec:NRI}). To calculate the calibration statistic and cNRI, we defined five risk strata based on clinically relevant cutoffs for the risk of experiencing a cardiovascular event within 5 years: 0-5\%, 5-10\%, 10-15\%, 15-20\% and $>$ 20\%. For the cNRI, risk predictions for an individual were considered discordant between two models if the predictions fell in different ranges. With the exception of the Bayesian network, for which custom Matlab code was written, all models were fitted using the open-source statistical software program R \citep{RProject}. Code is available from the first author's website.
+Model performance was assessed based on calibration (as described in Section \ref{sec:calibration}) and discrimination metrics, i.e., the C-index and cNRI (as described in Sections \ref{sec:cIndex} and \ref{sec:NRI}). To calculate the calibration statistic and cNRI, we defined five risk strata based on clinically relevant cutoffs for the risk of experiencing a cardiovascular event within 5 years: 0-5\%, 5-10\%, 10-15\%, 15-20\% and $>$ 20\%. For the cNRI, risk predictions for an individual were considered discordant between two models if the predictions fell in different ranges. All models were fitted using the open-source statistical software program R \citep{RProject}. Code is available from the first author's website, \url{https://sites.google.com/site/dmvock/}.
 
 We now provide some implementation details for the various machine learning techniques.
 
@@ -576,40 +576,40 @@ The full training dataset consists of 65,522 patients (75\% of the entire analys
 
 \begin{table}[ht]
 \centering
-\tbl{Calibration statistic and C-index of classification tree ({\em{Tree}}), k-nearest neighbors ({\em{k-NN}}), Bayesian network models ({\em{Bayes}}), logistic regression ({\em{Logistic}}), generalized additive models ({\em{GAM}}), and Cox proportional hazards model ({\em{Cox}}) evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic $K$; {\em{C-index}}: Concordance index;  \label{table:calib-cindex} }{%
+\tbl{Calibration statistic and C-index of versions of classification trees ({\em{Tree-}}), k-nearest neighbors ({\em{k-NN-}}), Bayesian network models ({\em{Bayes-}}), logistic regression ({\em{Logistic-}}), generalized additive models ({\em{GAM-}}), and Cox proportional hazards model ({\em{Cox}}) evaluated on the hold-out test set. {\em{Predicted event rate}}: Average predicted probability of experiencing a CV event within 5 years;  {\em{Calibration}}: calibration test statistic $K$; {\em{C-index}}: Concordance index;  \label{table:calib-cindex} }{%
 \begin{tabular}{lccc}
 & \bf{Predicted} & & \\
 \bf{Method} & \bf{event rate (\%)} & \bf{Calibration} & \bf{C-Index} \\
   \hline
 \bf{Tree} &  &  &  \\
-  \hspace{0.20in} IPCW & 5.41 & 12.74 & 0.788 \\
-  \hspace{0.20in} Discard & 7.13 & 76.92 & 0.784 \\
-  \hspace{0.20in} Zero & 4.19 & 125.76 & 0.784 \\
-  \hspace{0.20in} Split & 6.42 & 289.54 & 0.782 \\
+  \hspace{0.20in} -IPCW & 5.41 & 12.74 & 0.788 \\
+  \hspace{0.20in} -Discard & 7.13 & 76.92 & 0.784 \\
+  \hspace{0.20in} -Zero & 4.19 & 125.76 & 0.784 \\
+  \hspace{0.20in} -Split & 6.42 & 289.54 & 0.782 \\
    \hline
 \bf{k-NN} &  &  &  \\
-  \hspace{0.20in} IPCW & 5.27 & 10.24 & 0.787 \\
-  \hspace{0.20in} Discard & 7.07 & 49.11 & 0.793 \\
-  \hspace{0.20in} Zero & 4.11 & 85.64 & 0.788 \\
-  \hspace{0.20in} Split & 6.37 & 106.60 & 0.787 \\
+  \hspace{0.20in} -IPCW & 5.27 & 10.24 & 0.787 \\
+  \hspace{0.20in} -Discard & 7.07 & 49.11 & 0.793 \\
+  \hspace{0.20in} -Zero & 4.11 & 85.64 & 0.788 \\
+  \hspace{0.20in} -Split & 6.37 & 106.60 & 0.787 \\
    \hline
 \bf{Bayes} &  &  &  \\
-  \hspace{0.20in} IPCW & 5.62 & 6.18 & 0.802 \\
-  \hspace{0.20in} Discard & 7.40 & 76.82 & 0.802 \\
-  \hspace{0.20in} Zero & 4.26 & 80.16 & 0.800 \\
-  \hspace{0.20in} Split & 6.49 & 194.56 & 0.801 \\
+  \hspace{0.20in} -IPCW & 5.62 & 6.18 & 0.802 \\
+  \hspace{0.20in} -Discard & 7.40 & 76.82 & 0.802 \\
+  \hspace{0.20in} -Zero & 4.26 & 80.16 & 0.800 \\
+  \hspace{0.20in} -Split & 6.49 & 194.56 & 0.801 \\
    \hline
 \bf{Logistic} &  &  &  \\
-  \hspace{0.20in} IPCW & 5.40 & 4.85 & 0.801 \\
-  \hspace{0.20in} Discard & 7.14 & 63.92 & 0.801 \\
-  \hspace{0.20in} Zero & 4.18 & 83.78 & 0.799 \\
-  \hspace{0.20in} Split & 6.42 & 150.46 & 0.797 \\
+  \hspace{0.20in} -IPCW & 5.40 & 4.85 & 0.801 \\
+  \hspace{0.20in} -Discard & 7.14 & 63.92 & 0.801 \\
+  \hspace{0.20in} -Zero & 4.18 & 83.78 & 0.799 \\
+  \hspace{0.20in} -Split & 6.42 & 150.46 & 0.797 \\
    \hline
 \bf{GAM} &  &  &  \\
-  \hspace{0.20in} IPCW & 5.47 & 6.96 & 0.805 \\
-  \hspace{0.20in} Discard & 7.22 & 67.57 & 0.804 \\
-  \hspace{0.20in} Zero & 4.17 & 83.04 & 0.801 \\
-  \hspace{0.20in} Split & 6.42 & 233.07 & 0.802 \\
+  \hspace{0.20in} -IPCW & 5.47 & 6.96 & 0.805 \\
+  \hspace{0.20in} -Discard & 7.22 & 67.57 & 0.804 \\
+  \hspace{0.20in} -Zero & 4.17 & 83.04 & 0.801 \\
+  \hspace{0.20in} -Split & 6.42 & 233.07 & 0.802 \\
    \hline
 \bf{Cox} &  &  &  \\
    & 5.69 & 8.80 & 0.801 \\
@@ -618,34 +618,125 @@ The full training dataset consists of 65,522 patients (75\% of the entire analys
   }
 \end{table}
 
-It is clear from Table~\ref{table:calib-cindex} that both the \emph{Discard-} and \emph{Zero-} variants are poorly calibrated, yielding biased estimates of both the overall and subgroup-specific risks. The amount of improvement in reclassification performance due to using IPCW is technique-dependent; C-index is better for \emph{IPCW-Tree} than \emph{Zero-Tree} and \emph{Discard-Tree}, but there is no apparent effect for logistic regression.
+It is clear from Table~\ref{table:calib-cindex} that both the \emph{Discard} and \emph{Zero} variants are poorly calibrated, yielding biased estimates of both the overall and subgroup-specific risks. The amount of improvement in reclassification performance due to using IPCW is technique-dependent; C-index is better for \emph{Tree-IPCW} than \emph{Tree-Zero} and \emph{Tree-Discard}, but there is no apparent effect for logistic regression.
 
 \begin{table}[ht]
 	\centering
-\tbl{Net reclassification for events, non-events, and overall using classification tree, k-nearest neighbors, Bayesian networks, logistic regression, and generalized additive models with IPC weighting and Cox proportional hazards model evaluated on the hold-out test set. Positive numbers indicate that technqiue on the left correctly reclassifies subjects more frequently than the technique on the right.  \label{table:cNRI} }{
+	\tbl{Net reclassification for events, non-events, and overall using classification tree, k-nearest neighbors, Bayesian networks, logistic regression, and generalized additive models with IPC weighting and Cox proportional hazards model evaluated on the hold-out test set. Positive numbers indicate that technqiue on the left correctly reclassifies subjects more frequently than the technique on the right.  \label{table:cNRI} }{
 \begin{tabular}{lcccc}
-  \hline
- & cNRI (Events) & cNRI (Non-Events) & cNRI (Overall) & cNRI(Overall Weighted) \\
-  \hline
-Tree vs. kNN & -0.003 & 0.048 & 0.045 & 0.045 \\
-  Tree vs. Bayes & -0.064 & 0.058 & -0.006 & 0.050 \\
-  Tree vs. Logistic & -0.065 & 0.045 & -0.020 & 0.038 \\
-  Tree vs. GAM & -0.056 & 0.030 & -0.026 & 0.024 \\
-  Tree vs. Cox & -0.102 & 0.061 & -0.041 & 0.051 \\
-  kNN vs. Bayes & -0.065 & 0.015 & -0.050 & 0.009 \\
-  kNN vs. Logistic & -0.108 & 0.009 & -0.099 & 0.001 \\
-  kNN vs. GAM & -0.069 & -0.013 & -0.082 & -0.016 \\
-  kNN vs. Cox & -0.159 & 0.031 & -0.128 & 0.018 \\
-  Bayes vs. Logistic & -0.013 & -0.017 & -0.030 & -0.017 \\
-  Bayes vs. GAM & 0.028 & -0.040 & -0.012 & -0.035 \\
-  Bayes vs. Cox & -0.060 & 0.002 & -0.058 & -0.002 \\
-  Logistic vs. GAM & 0.037 & -0.022 & 0.015 & -0.018 \\
-  Logistic vs. Cox & -0.053 & 0.021 & -0.031 & 0.017 \\
-  GAM vs. Cox & -0.085 & 0.043 & -0.043 & 0.035 \\
-   \hline
-\end{tabular}
-}
+	\hline
+	& cNRI (Events) & cNRI (Non-Events) & cNRI (Overall) & cNRI(Overall Weighted) \\
+	\hline
+			\bf{Tree} &  &  & & \\
+			\hspace{0.20in} vs. kNN & -0.003 & 0.048 & 0.045 & 0.045 \\
+			\hspace{0.20in} vs. Bayes & -0.064 & 0.058 & -0.006 & 0.050 \\
+			\hspace{0.20in} vs. Logistic & -0.065 & 0.045 & -0.020 & 0.038 \\
+			\hspace{0.20in} vs. GAM & -0.056 & 0.030 & -0.026 & 0.024 \\
+			\hspace{0.20in} vs. Cox & -0.102 & 0.061 & -0.041 & 0.051 \\
+			\hline
+			\bf{k-NN} &  &  &  & \\
+			\hspace{0.20in} vs. Bayes & -0.065 & 0.015 & -0.050 & 0.009 \\
+			\hspace{0.20in} vs. Logistic & -0.108 & 0.009 & -0.099 & 0.001 \\
+			\hspace{0.20in} vs. GAM & -0.069 & -0.013 & -0.082 & -0.016 \\
+			\hspace{0.20in} vs. Cox & -0.159 & 0.031 & -0.128 & 0.018 \\
+			\hline
+			\bf{Bayes} &  &  &  & \\
+			\hspace{0.20in} vs. Logistic & -0.013 & -0.017 & -0.030 & -0.017 \\
+			\hspace{0.20in} vs. GAM & 0.028 & -0.040 & -0.012 & -0.035 \\
+			\hspace{0.20in} vs. Cox & -0.060 & 0.002 & -0.058 & -0.002 \\
+			\hline
+			\bf{Logistic} &  &  &  & \\			
+			\hspace{0.20in} vs. GAM & 0.037 & -0.022 & 0.015 & -0.018 \\
+			\hspace{0.20in} vs. Cox & -0.053 & 0.021 & -0.031 & 0.017\\
+			\hline
+			\bf{GAM} &  &  &  & \\			
+			\hspace{0.20in} vs. Cox & -0.085 & 0.043 & -0.043 & 0.035 \\
+			\hline
+		\end{tabular}
+	}
 \end{table}
+%
+%			\hspace{0.20in} vs. k-NN & 5.41 & 12.74 & 0.788 \\
+%			\hspace{0.20in} vs. Bayes & 7.13 & 76.92 & 0.784 \\
+%			\hspace{0.20in} vs. Logistic & 4.19 & 125.76 & 0.784 \\
+%			\hspace{0.20in} vs. GAM & 6.42 & 289.54 & 0.782 \\
+%			\hspace{0.20in} vs. Cox & 6.42 & 289.54 & 0.782 \\
+%			\hline
+%			\bf{k-NN} &  &  &  \\
+%			\hspace{0.20in} vs. Bayes & 7.13 & 76.92 & 0.784 \\
+%			\hspace{0.20in} vs. Logistic & 4.19 & 125.76 & 0.784 \\
+%			\hspace{0.20in} vs. GAM & 6.42 & 289.54 & 0.782 \\
+%			\hspace{0.20in} vs. Cox & 6.42 & 289.54 & 0.782 \\
+%			\hline
+%			\bf{Tree} &  &  &  \\
+%			\hspace{0.20in} vs. k-NN & 5.41 & 12.74 & 0.788 \\
+%			\hspace{0.20in} vs. Bayes & 7.13 & 76.92 & 0.784 \\
+%			\hspace{0.20in} vs. Logistic & 4.19 & 125.76 & 0.784 \\
+%			\hspace{0.20in} vs. GAM & 6.42 & 289.54 & 0.782 \\
+%			\hspace{0.20in} vs. Cox & 6.42 & 289.54 & 0.782 \\
+%			\hline
+%		
+%			\end{tabular}
+%		}
+%	\end{table}
+%
+%			\bf{k-NN-} &  &  &  \\
+%			\hspace{0.20in} IPCW & 5.27 & 10.24 & 0.787 \\
+%			\hspace{0.20in} Discard & 7.07 & 49.11 & 0.793 \\
+%			\hspace{0.20in} Zero & 4.11 & 85.64 & 0.788 \\
+%			\hspace{0.20in} Split & 6.37 & 106.60 & 0.787 \\
+%			\hline
+%			\bf{Bayes-} &  &  &  \\
+%			\hspace{0.20in} IPCW & 5.62 & 6.18 & 0.802 \\
+%			\hspace{0.20in} Discard & 7.40 & 76.82 & 0.802 \\
+%			\hspace{0.20in} Zero & 4.26 & 80.16 & 0.800 \\
+%			\hspace{0.20in} Split & 6.49 & 194.56 & 0.801 \\
+%			\hline
+%			\bf{Logistic-} &  &  &  \\
+%			\hspace{0.20in} IPCW & 5.40 & 4.85 & 0.801 \\
+%			\hspace{0.20in} Discard & 7.14 & 63.92 & 0.801 \\
+%			\hspace{0.20in} Zero & 4.18 & 83.78 & 0.799 \\
+%			\hspace{0.20in} Split & 6.42 & 150.46 & 0.797 \\
+%			\hline
+%			\bf{GAM-} &  &  &  \\
+%			\hspace{0.20in} IPCW & 5.47 & 6.96 & 0.805 \\
+%			\hspace{0.20in} Discard & 7.22 & 67.57 & 0.804 \\
+%			\hspace{0.20in} Zero & 4.17 & 83.04 & 0.801 \\
+%			\hspace{0.20in} Split & 6.42 & 233.07 & 0.802 \\
+%			\hline
+%			\bf{Cox} &  &  &  \\
+%			& 5.69 & 8.80 & 0.801 \\
+%			\hline
+%		\end{tabular}
+%	}
+%\end{table}
+%
+%\begin{table}[ht]
+%	\centering
+%	\tbl{Net reclassification for events, non-events, and overall using classification tree, k-nearest neighbors, Bayesian networks, logistic regression, and generalized additive models with IPC weighting and Cox proportional hazards model evaluated on the hold-out test set. Positive numbers indicate that technqiue on the left correctly reclassifies subjects more frequently than the technique on the right.  \label{table:cNRI} }{
+%\begin{tabular}{lcccc}
+%  \hline
+% & cNRI (Events) & cNRI (Non-Events) & cNRI (Overall) & cNRI(Overall Weighted) \\
+%  \hline
+%Tree vs. kNN & -0.003 & 0.048 & 0.045 & 0.045 \\
+%  Tree vs. Bayes & -0.064 & 0.058 & -0.006 & 0.050 \\
+%  Tree vs. Logistic & -0.065 & 0.045 & -0.020 & 0.038 \\
+%  Tree vs. GAM & -0.056 & 0.030 & -0.026 & 0.024 \\
+%  Tree vs. Cox & -0.102 & 0.061 & -0.041 & 0.051 \\
+%  kNN vs. Bayes & -0.065 & 0.015 & -0.050 & 0.009 \\
+%  kNN vs. Logistic & -0.108 & 0.009 & -0.099 & 0.001 \\
+%  kNN vs. GAM & -0.069 & -0.013 & -0.082 & -0.016 \\
+%  kNN vs. Cox & -0.159 & 0.031 & -0.128 & 0.018 \\
+%  Bayes vs. Logistic & -0.013 & -0.017 & -0.030 & -0.017 \\
+%  Bayes vs. GAM & 0.028 & -0.040 & -0.012 & -0.035 \\
+%  Bayes vs. Cox & -0.060 & 0.002 & -0.058 & -0.002 \\
+%  Logistic vs. GAM & 0.037 & -0.022 & 0.015 & -0.018 \\
+%  Logistic vs. Cox & -0.053 & 0.021 & -0.031 & 0.017 \\
+%  GAM vs. Cox & -0.085 & 0.043 & -0.043 & 0.035 \\
+%   \hline
+%\end{tabular}
+%}
+%\end{table}
 
 
 \begin{figure*}[h]
