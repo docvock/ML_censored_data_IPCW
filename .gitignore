@@ -43,7 +43,6 @@ Temporary Items
 .apdisk
 
 *.bst
-*.pdf
 *.cls
 *.sty
 *.eps
@@ -53,6 +52,10 @@ Temporary Items
 *.log
 *.out
 *.gz
+*.synctex
+*.docx
+*.bak
+*.sav
 v2-acmsmall-sample.tex
 code/.Rhistory
 code/IPCW-rpart-test.R

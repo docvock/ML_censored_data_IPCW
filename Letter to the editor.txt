@@ -1,0 +1,19 @@
+Dear editors,
+
+We are pleased to submit our manuscript entitled ``Adapting machine learning techniques to censored time-to-event health record data: a general approach using inverse proability of censoring weighting'' for consideration in the big data for health special issue of Transactions on Knowledge Discovery from Data. A major focus of our research team is the development of robust and flexible machine learning tools which can be applied to derive insights from complex, ``messy'' electronic health data. 
+
+We recently published a paper, "Data mining for censored time-to-event data: a Bayesian network model for predicting cardiovascular risk from electronic health record data'', in a special issue of Data Mining and Knowledge Discovery (DMKD) also dedicated to health-related topics. Since there appears to be some overlap in the editorial team between the DMKD special issue and the issue for which we are submitting this paper, we wanted to clarify the distinctions between the DMKD paper and this one (which we will refer to as the "TKDD paper''). While both papers address the issue of extending machine learning techniques to handle censored time-to-event data, the DMKD paper provides an in-depth description of how to extend a specific method (Bayesian networks) to handle censoring, this TKDD submission proposes a general-purpose strategy for adapting a wide variety of machine learning techniques to censored data. Rather than focusing on implementation details for a single method, in the TKDD paper we illustrate how inverse probability weighting can be incorporated into a wide variety of well-known ML techniques such as logistic regression, generalized additive models, Bayesian networks, classification trees, and k-nearest neighbors. The data application in both papers involves electronic health data from a large Midwestern health system, but again the focus in the two papers is different: In DMKD, we emphasize the calibration and reclassification performance of the adapted Bayesian network model relative to a Cox proportional hazards model, while in TMKD our concern is showing how inverse probability of censoring weighting improves the performance of the aforementioned ML techniques relative to versions of these techniques which do not account for censoring. In summary, we believe that these two papers represent distinct and unique contributions to the literature, and would be happy to address any other questions about potential overlap.
+
+Thank you for your consideration.
+
+Sincerely,
+
+David M. Vock
+Julian Wolfson
+Sunayan Bandyopadhyay
+Gediminas Adomavicius
+Paul E. Johnson
+Gabriela Vazquez-Benitez
+Patrick J. O'Connor
+
+University of Minnesota
